@@ -713,15 +713,18 @@ function renderHistory() {
 function loadHistory(id) {
   const entry = history.find(h => h.id === id);
   if (entry) {
-    displayResult({
+    currentResult = {
       student_name: entry.student_name, student_nim: entry.student_nim, research_title: entry.research_title,
       total_errors: entry.total_errors,
+      totalPages: entry.totalPages || '-',
       error_count: entry.errors.filter(e => e.severity === 'error').length,
       warning_count: entry.errors.filter(e => e.severity === 'warning').length,
       eyd_score: Math.max(0, 25 - (entry.errors.filter(e => e.severity === 'error').length * 3) - (entry.errors.filter(e => e.severity === 'warning').length * 1)),
       error_categories: entry.errors.reduce((acc, err) => { if (!acc[err.type]) acc[err.type] = []; acc[err.type].push(err); return acc; }, {}),
       errors: entry.errors
-    });
+    };
+    allErrors = entry.errors;
+    displayResult(currentResult);
   }
 }
 
