@@ -140,6 +140,29 @@ body { font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-ser
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 @media print { body{background:white} .upload-section,.loading-card,.action-buttons,.history-section,.footer{display:none!important} .result-section{display:block!important} .app{max-width:100%} }
+
+/* Logic Analysis Section */
+.logic-section { display:none; padding:0 16px 16px; }
+.logic-section.show { display:block; }
+.logic-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--border); margin-bottom:12px; }
+.logic-header { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+.logic-header h4 { font-size:14px; font-weight:600; color:var(--text); }
+.logic-tabs { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.logic-tab { padding:8px 14px; border-radius:20px; border:1px solid var(--border); background:var(--card); font-size:11px; font-weight:600; color:var(--text-secondary); cursor:pointer; white-space:nowrap; }
+.logic-tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+.logic-item { padding:14px; border-radius:var(--radius-sm); margin-bottom:10px; border-left:4px solid var(--primary); background:#f0f0ff; }
+.logic-item.warning { border-left-color:var(--warning); background:#fffbeb; }
+.logic-item.error { border-left-color:var(--danger); background:#fef2f2; }
+.logic-item.success { border-left-color:var(--success); background:#f0fdf4; }
+.logic-item .label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; margin-bottom:4px; }
+.logic-item .title { font-size:13px; font-weight:700; margin-bottom:6px; color:var(--text); }
+.logic-item .desc { font-size:12px; color:var(--text-secondary); line-height:1.5; }
+.logic-item .suggestion { font-size:12px; color:var(--success); font-weight:600; margin-top:8px; }
+.logic-summary { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
+.logic-stat { background:var(--bg); border-radius:var(--radius-sm); padding:14px; text-align:center; }
+.logic-stat .num { font-size:24px; font-weight:800; line-height:1; margin-bottom:4px; }
+.logic-stat .lbl { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; }
+
 </style>
 </head>
 <body>
@@ -203,8 +226,20 @@ body { font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-ser
     </div>
   </div>
 
+
+  <!-- Logic Analysis Section -->
+  <div class="logic-section" id="logicSection">
+    <div class="logic-card">
+      <div class="logic-header"><h4>🧠 Analisa Logika Penulisan</h4></div>
+      <div class="logic-summary" id="logicSummary"></div>
+      <div class="logic-tabs" id="logicTabs"></div>
+      <div id="logicContent"></div>
+    </div>
+  </div>
+
   <div class="action-buttons" id="actionButtons" style="display:none;">
     <button class="btn btn-primary" onclick="saveResult()">💾 Simpan</button>
+    <button class="btn btn-outline" onclick="runLogicAnalysis()">🧠 Logika</button>
     <button class="btn btn-outline" onclick="exportDOC()">📄 Export DOC</button>
     <button class="btn btn-outline" onclick="window.print()">📸 Screenshot</button>
   </div>
@@ -590,7 +625,7 @@ async function analyzeFile(file) {
     }
     
     currentResult = {
-      totalPages, errors, error_categories: errorCategories,
+      _pages: pages, totalPages, errors, error_categories: errorCategories,
       eyd_score: eydScore,
       error_count: errors.filter(e => e.severity === 'error').length,
       warning_count: errors.filter(e => e.severity === 'warning').length,
@@ -734,6 +769,100 @@ function clearHistory() {
   }
 }
 
+
+// ===== Logic Analysis =====
+let logicResults = null;
+
+function runLogicAnalysis() {
+  if (!currentResult) { alert('Upload dan analisis PDF dulu'); return; }
+  const pages = currentResult._pages || [];
+  const fullText = pages.map(p => p.text).join('\n');
+  logicResults = analyzeWritingLogic(fullText, currentResult.errors);
+  displayLogicResults(logicResults);
+  document.getElementById('logicSection').classList.add('show');
+  document.getElementById('logicSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function analyzeWritingLogic(text, errors) {
+  const r = { summary: { total: 0, errors: 0, warnings: 0, passed: 0 }, categories: { 'Latar Belakang': [], 'Tujuan': [], 'Tinjauan Pustaka': [], 'Pembahasan': [], 'Struktur': [] } };
+  function add(cat, type, title, desc, sug) { r.categories[cat].push({ type, title, desc, suggestion: sug }); r.summary.total++; if (type === 'error') r.summary.errors++; else if (type === 'warning') r.summary.warnings++; else r.summary.passed++; }
+
+  // Latar Belakang
+  const lb = extractSec(text, 'LATAR BELAKANG', 'TUJUAN');
+  if (lb) {
+    if (!/belum.*(penelitian|kajian)|gap|belum pernah/i.test(lb)) add('Latar Belakang', 'warning', 'Tidak Ada Gap Penelitian', 'Latar belakang tidak menyebutkan research gap.', 'Tambahkan: "Belum ada penelitian yang mengkaji..."');
+    else add('Latar Belakang', 'success', 'Gap Penelitian Ada', 'Sudah menyebutkan gap penelitian.', '');
+    if (/C-Organik|C\/N|N-Total|P-Total|\d+[,.]?\d*%/i.test(lb)) add('Latar Belakang', 'warning', 'Data Teknis di Latar Belakang', 'Data teknis seharusnya di Tinjauan Pustaka.', 'Pindahkan data teknis ke BAB II.');
+    const paras = lb.split('\n\n').filter(p => p.trim().length > 50);
+    if (paras.length < 3) add('Latar Belakang', 'warning', 'Paragraf Terlalu Sedikit', 'Idealnya 5-8 paragraf.', 'Tambah paragraf: potensi, masalah, solusi, keunggulan, gap.');
+    for (const kw of ['pembayaran digital', 'Pospay', 'fintech']) { if (lb.toLowerCase().includes(kw.toLowerCase())) add('Latar Belakang', 'error', 'Referensi Salah Konten', 'Ditemukan "' + kw + '" yang tidak relevan.', 'Hapus/ganti referensi yang salah.'); }
+  }
+
+  // Tujuan
+  const tj = extractSec(text, 'TUJUAN', 'HIPOTESIS');
+  if (tj) {
+    if (/komposisi\s+dosis/i.test(tj)) add('Tujuan', 'error', 'Kata "Komposisi" Salah', 'Seharusnya "pengaruh dosis".', 'Ganti: "Mengetahui pengaruh dosis kompos..."');
+    const lines = tj.split('\n').filter(l => l.trim().match(/^\d+\./));
+    if (lines.length >= 2 && simScore(lines[0], lines[1]) > 0.5) add('Tujuan', 'error', 'Tujuan Redundan', 'Tujuan 1 dan 2 hampir sama.', 'Gabung jadi satu tujuan.');
+  }
+
+  // Tinjauan Pustaka
+  const tp = extractSec(text, 'TINJAUAN PUSTAKA', 'METODE PELAKSANAAN');
+  if (tp) {
+    const desc = ['adalah', 'merupakan', 'yaitu'].filter(w => tp.toLowerCase().includes(w)).length;
+    if (desc > 5) add('Tinjauan Pustaka', 'warning', 'Terlalu Deskriptif', 'Terlalu banyak definisi.', 'Tambah kalimat analitis yang mengaitkan dengan penelitian.');
+    if (!/berdasarkan.*(review|kajian|di atas)/i.test(tp)) add('Tinjauan Pustaka', 'warning', 'Tidak Ada Sintesis', 'Tidak ada paragraf sintesis.', 'Tambah paragraf akhir yang menyimpulkan literatur.');
+  }
+
+  // Pembahasan
+  const pb = extractSec(text, 'PEMBAHASAN', 'KESIMPULAN');
+  if (pb) {
+    if (!/4\.2\.\d/i.test(pb)) add('Pembahasan', 'error', 'Tidak Terstruktur', 'Tidak ada sub-bab pembahasan.', 'Buat sub-bab: 4.2.1 Vegetatif, 4.2.2 Generatif.');
+    const dataRead = ['terlihat bahwa', 'memperlihatkan'].filter(w => pb.toLowerCase().includes(w)).length;
+    if (dataRead > 3) add('Pembahasan', 'warning', 'Hanya Baca Ulang Data', 'Terlalu banyak kalimat deskriptif.', 'Jelaskan MENGAPA, bukan hanya APA.');
+  }
+
+  // Struktur
+  if (!/DAFTAR PUSTAKA/i.test(text)) add('Struktur', 'error', 'Daftar Pustaka Tidak Ada', 'Bagian DAFTAR PUSTAKA tidak ditemukan.', 'Tambahkan DAFTAR PUSTAKA.');
+  const refErr = errors.filter(e => e.type.includes('Daftar Pustaka'));
+  if (refErr.length > 0) add('Struktur', 'warning', refErr.length + ' Error Format Pustaka', 'Format referensi tidak sesuai APA.', 'Periksa format: "Nama, A. A. (2024). Judul."');
+  const citErr = errors.filter(e => e.type.includes('Sitasi'));
+  if (citErr.length > 0) add('Struktur', 'warning', citErr.length + ' Inkonsistensi Sitasi', 'Sitasi di teks tidak cocok dengan Daftar Pustaka.', 'Pastikan semua sitasi ada di Daftar Pustaka.');
+
+  return r;
+}
+
+function extractSec(text, start, end) {
+  const si = text.toUpperCase().indexOf(start);
+  if (si === -1) return null;
+  const ei = end ? text.toUpperCase().indexOf(end, si + 1) : text.length;
+  return ei === -1 ? text.substring(si) : text.substring(si, ei);
+}
+
+function simScore(a, b) {
+  const w1 = new Set(a.toLowerCase().split(/\s+/).filter(w => w.length > 3));
+  const w2 = new Set(b.toLowerCase().split(/\s+/).filter(w => w.length > 3));
+  const inter = new Set([...w1].filter(w => w2.has(w)));
+  const union = new Set([...w1, ...w2]);
+  return union.size > 0 ? inter.size / union.size : 0;
+}
+
+function displayLogicResults(r) {
+  document.getElementById('logicSummary').innerHTML = '<div class="logic-stat"><div class="num" style="color:var(--primary)">' + r.summary.total + '</div><div class="lbl">Total</div></div><div class="logic-stat"><div class="num" style="color:var(--danger)">' + r.summary.errors + '</div><div class="lbl">Error</div></div><div class="logic-stat"><div class="num" style="color:var(--warning)">' + r.summary.warnings + '</div><div class="lbl">Warning</div></div><div class="logic-stat"><div class="num" style="color:var(--success)">' + r.summary.passed + '</div><div class="lbl">Baik</div></div>';
+  const cats = Object.keys(r.categories);
+  document.getElementById('logicTabs').innerHTML = cats.map((c, i) => '<button class="logic-tab ' + (i === 0 ? 'active' : '') + '" onclick="switchTab(\'' + c + '\', this)">' + c + ' (' + r.categories[c].length + ')</button>').join('');
+  showCat(cats[0]);
+}
+
+function switchTab(cat, btn) { document.querySelectorAll('.logic-tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); showCat(cat); }
+
+function showCat(cat) {
+  const items = logicResults.categories[cat];
+  const el = document.getElementById('logicContent');
+  if (items.length === 0) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Tidak ada temuan ✅</div>'; return; }
+  el.innerHTML = items.map(i => '<div class="logic-item ' + i.type + '"><div class="label">' + (i.type === 'error' ? '❌ Error' : i.type === 'warning' ? '⚠️ Warning' : '✅ Baik') + '</div><div class="title">' + i.title + '</div><div class="desc">' + i.desc + '</div>' + (i.suggestion ? '<div class="suggestion">' + i.suggestion + '</div>' : '') + '</div>').join('');
+}
+
 // ===== Export DOC (HTML-based, no external libs) =====
 function exportDOC() {
   if (!currentResult) { alert('Tidak ada hasil untuk di-export'); return; }
@@ -772,6 +901,29 @@ tr:nth-child(even){background:#f8fafc}
 .info td{border:none;padding:3px 0}
 .info td:first-child{font-weight:bold;width:140px}
 .footer{text-align:center;margin-top:30px;color:#888;font-size:10px;font-style:italic;border-top:1px solid #6366f1;padding-top:8px}
+
+/* Logic Analysis Section */
+.logic-section { display:none; padding:0 16px 16px; }
+.logic-section.show { display:block; }
+.logic-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--border); margin-bottom:12px; }
+.logic-header { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+.logic-header h4 { font-size:14px; font-weight:600; color:var(--text); }
+.logic-tabs { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.logic-tab { padding:8px 14px; border-radius:20px; border:1px solid var(--border); background:var(--card); font-size:11px; font-weight:600; color:var(--text-secondary); cursor:pointer; white-space:nowrap; }
+.logic-tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+.logic-item { padding:14px; border-radius:var(--radius-sm); margin-bottom:10px; border-left:4px solid var(--primary); background:#f0f0ff; }
+.logic-item.warning { border-left-color:var(--warning); background:#fffbeb; }
+.logic-item.error { border-left-color:var(--danger); background:#fef2f2; }
+.logic-item.success { border-left-color:var(--success); background:#f0fdf4; }
+.logic-item .label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; margin-bottom:4px; }
+.logic-item .title { font-size:13px; font-weight:700; margin-bottom:6px; color:var(--text); }
+.logic-item .desc { font-size:12px; color:var(--text-secondary); line-height:1.5; }
+.logic-item .suggestion { font-size:12px; color:var(--success); font-weight:600; margin-top:8px; }
+.logic-summary { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
+.logic-stat { background:var(--bg); border-radius:var(--radius-sm); padding:14px; text-align:center; }
+.logic-stat .num { font-size:24px; font-weight:800; line-height:1; margin-bottom:4px; }
+.logic-stat .lbl { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; }
+
 </style></head><body>
 <h1>LAPORAN ANALISIS DOKUMEN</h1>
 <h2>Program Studi BINGPRO — Politeknik Pertanian Negeri Payakumbuh</h2>
