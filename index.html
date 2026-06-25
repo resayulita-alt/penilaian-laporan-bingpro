@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#6366f1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<title>Analisis Laporan — BINGPRO</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root {
+  --primary: #6366f1;
+  --primary-dark: #4f46e5;
+  --primary-light: #a5b4fc;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+  --radius: 16px;
+  --radius-sm: 12px;
+}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+body { font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; min-height:100dvh; overflow-x:hidden; }
+.app { max-width:480px; margin:0 auto; min-height:100vh; min-height:100dvh; position:relative; }
+.header { background:linear-gradient(135deg,var(--primary) 0%,#8b5cf6 100%); color:white; padding:20px 20px 80px; position:relative; overflow:hidden; }
+.header::before { content:''; position:absolute; top:-50%; right:-30%; width:200px; height:200px; background:rgba(255,255,255,0.1); border-radius:50%; }
+.header::after { content:''; position:absolute; bottom:-40%; left:-20%; width:150px; height:150px; background:rgba(255,255,255,0.08); border-radius:50%; }
+.header-content { position:relative; z-index:1; }
+.header h1 { font-size:24px; font-weight:800; margin-bottom:4px; letter-spacing:-0.5px; }
+.header p { font-size:13px; opacity:0.85; font-weight:400; }
+.upload-section { margin:-60px 16px 16px; position:relative; z-index:2; }
+.upload-card { background:var(--card); border-radius:var(--radius); padding:24px; box-shadow:var(--shadow-lg); border:1px solid var(--border); }
+.upload-zone { border:2px dashed var(--primary-light); border-radius:var(--radius-sm); padding:32px 20px; text-align:center; cursor:pointer; transition:all 0.3s ease; background:linear-gradient(135deg,#f0f0ff 0%,#faf5ff 100%); }
+.upload-zone:hover,.upload-zone.dragover { border-color:var(--primary); background:linear-gradient(135deg,#e8e8ff 0%,#f0f0ff 100%); transform:scale(1.02); }
+.upload-zone:active { transform:scale(0.98); }
+.upload-icon { width:56px; height:56px; background:linear-gradient(135deg,var(--primary) 0%,#8b5cf6 100%); border-radius:16px; display:flex; align-items:center; justify-content:center; margin:0 auto 12px; font-size:24px; }
+.upload-zone h3 { font-size:15px; font-weight:600; color:var(--text); margin-bottom:4px; }
+.upload-zone p { font-size:12px; color:var(--text-muted); }
+.loading-card { background:var(--card); border-radius:var(--radius); padding:32px 24px; box-shadow:var(--shadow-lg); border:1px solid var(--border); margin:16px; text-align:center; display:none; }
+.loading-card.show { display:block; }
+.loading-dots { display:flex; gap:8px; justify-content:center; margin-bottom:16px; }
+.loading-dots span { width:12px; height:12px; background:var(--primary); border-radius:50%; animation:bounce 1.4s infinite ease-in-out both; }
+.loading-dots span:nth-child(1) { animation-delay:-0.32s; }
+.loading-dots span:nth-child(2) { animation-delay:-0.16s; }
+@keyframes bounce { 0%,80%,100%{transform:scale(0)} 40%{transform:scale(1)} }
+.loading-card h3 { font-size:16px; font-weight:600; margin-bottom:4px; }
+.loading-card p { font-size:13px; color:var(--text-secondary); }
+.result-section { display:none; padding:0 16px 16px; }
+.result-section.show { display:block; }
+.student-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--border); margin-bottom:12px; display:flex; align-items:center; gap:16px; }
+.student-avatar { width:52px; height:52px; background:linear-gradient(135deg,var(--primary) 0%,#8b5cf6 100%); border-radius:14px; display:flex; align-items:center; justify-content:center; font-size:20px; color:white; flex-shrink:0; }
+.student-info { flex:1; min-width:0; }
+.student-info h3 { font-size:16px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.student-info .nim { font-size:12px; color:var(--text-muted); margin-bottom:2px; }
+.student-info .title { font-size:12px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+.stat-card { background:var(--card); border-radius:var(--radius-sm); padding:16px 12px; text-align:center; box-shadow:var(--shadow); border:1px solid var(--border); }
+.stat-card .icon { font-size:20px; margin-bottom:8px; }
+.stat-card .value { font-size:24px; font-weight:800; line-height:1; margin-bottom:4px; }
+.stat-card .label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; }
+.stat-card.success .value { color:var(--success); }
+.stat-card.warning .value { color:var(--warning); }
+.stat-card.danger .value { color:var(--danger); }
+.score-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--border); margin-bottom:12px; }
+.score-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; }
+.score-header h4 { font-size:14px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:8px; }
+.score-header .score-value { font-size:20px; font-weight:800; color:var(--primary); }
+.score-bar { background:var(--border); border-radius:10px; height:12px; overflow:hidden; }
+.score-fill { height:100%; border-radius:10px; transition:width 1s ease; background:linear-gradient(90deg,var(--primary) 0%,#8b5cf6 100%); }
+.score-fill.warning { background:linear-gradient(90deg,var(--warning) 0%,#fbbf24 100%); }
+.score-fill.danger { background:linear-gradient(90deg,var(--danger) 0%,#f87171 100%); }
+.category-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--border); margin-bottom:12px; }
+.category-header { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+.category-header h4 { font-size:14px; font-weight:600; color:var(--text); }
+.category-list { display:flex; flex-direction:column; gap:8px; }
+.category-item { display:flex; align-items:center; justify-content:space-between; padding:12px 14px; background:var(--bg); border-radius:var(--radius-sm); cursor:pointer; transition:all 0.2s ease; }
+.category-item:active { transform:scale(0.98); background:var(--border); }
+.category-item .name { font-size:13px; font-weight:500; color:var(--text); }
+.category-item .badge { font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; }
+.badge.error { background:#fef2f2; color:var(--danger); }
+.badge.warning { background:#fffbeb; color:var(--warning); }
+.badge.info { background:#eff6ff; color:#3b82f6; }
+.error-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--border); margin-bottom:12px; }
+.error-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.error-header h4 { font-size:14px; font-weight:600; color:var(--text); display:flex; align-items:center; gap:8px; }
+.error-filter { display:flex; gap:6px; }
+.filter-btn { padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--card); font-size:11px; font-weight:600; color:var(--text-secondary); cursor:pointer; transition:all 0.2s ease; }
+.filter-btn.active { background:var(--primary); color:white; border-color:var(--primary); }
+.error-list { display:flex; flex-direction:column; gap:10px; max-height:400px; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+.error-item { padding:14px; border-radius:var(--radius-sm); border-left:4px solid var(--danger); background:#fef2f2; }
+.error-item.warning { border-left-color:var(--warning); background:#fffbeb; }
+.error-item.info { border-left-color:#3b82f6; background:#eff6ff; }
+.error-item .line { font-size:10px; color:var(--text-muted); margin-bottom:4px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+.error-item .type { font-size:13px; font-weight:700; margin-bottom:6px; }
+.error-item.error .type { color:var(--danger); }
+.error-item.warning .type { color:var(--warning); }
+.error-item.info .type { color:#3b82f6; }
+.error-item .context { font-size:12px; color:var(--text-secondary); background:rgba(0,0,0,0.04); padding:8px 10px; border-radius:8px; font-family:'SF Mono','Fira Code',monospace; word-break:break-all; line-height:1.4; margin-bottom:8px; }
+.error-item .fix { font-size:12px; color:var(--success); font-weight:600; display:flex; align-items:flex-start; gap:6px; }
+.error-item .fix::before { content:'💡'; font-size:12px; }
+.action-buttons { display:flex; gap:10px; padding:0 16px 16px; }
+.btn { flex:1; padding:14px 20px; border-radius:var(--radius-sm); border:none; font-weight:700; font-size:14px; cursor:pointer; transition:all 0.2s ease; display:flex; align-items:center; justify-content:center; gap:8px; font-family:inherit; }
+.btn:active { transform:scale(0.96); }
+.btn-primary { background:linear-gradient(135deg,var(--primary) 0%,#8b5cf6 100%); color:white; box-shadow:0 4px 12px rgba(99,102,241,0.4); }
+.btn-outline { background:var(--card); color:var(--primary); border:2px solid var(--primary); }
+.btn-danger { background:var(--danger); color:white; box-shadow:0 4px 12px rgba(239,68,68,0.4); }
+.footer { text-align:center; padding:20px 16px 32px; color:var(--text-muted); font-size:11px; }
+.footer a { color:var(--primary); text-decoration:none; font-weight:600; }
+.history-section { padding:0 16px 16px; }
+.history-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--border); }
+.history-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; }
+.history-header h4 { font-size:14px; font-weight:600; color:var(--text); }
+.history-header .clear-btn { font-size:11px; color:var(--danger); cursor:pointer; font-weight:600; background:none; border:none; padding:4px 8px; }
+.history-list { display:flex; flex-direction:column; gap:8px; }
+.history-item { display:flex; align-items:center; gap:12px; padding:12px; background:var(--bg); border-radius:var(--radius-sm); cursor:pointer; transition:all 0.2s ease; position:relative; }
+.history-item:active { transform:scale(0.98); background:var(--border); }
+.history-icon { width:40px; height:40px; background:linear-gradient(135deg,var(--primary-light) 0%,#c4b5fd 100%); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.history-info { flex:1; min-width:0; }
+.history-info .name { font-size:13px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.history-info .date { font-size:11px; color:var(--text-muted); }
+.history-badge { font-size:12px; font-weight:700; padding:4px 10px; border-radius:20px; background:#fef2f2; color:var(--danger); flex-shrink:0; }
+.history-empty { text-align:center; padding:24px; color:var(--text-muted); }
+.history-empty .icon { font-size:32px; margin-bottom:8px; }
+.history-empty p { font-size:13px; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.animate-in { animation:fadeIn 0.3s ease; }
+.animate-slide { animation:slideUp 0.4s ease; }
+::-webkit-scrollbar { width:4px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
+@media print { body{background:white} .upload-section,.loading-card,.action-buttons,.history-section,.footer{display:none!important} .result-section{display:block!important} .app{max-width:100%} }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-content">
+      <h1>📋 Analisis Laporan</h1>
+      <p>Upload PDF → Auto Check → Share hasilnya</p>
+    </div>
+  </div>
+
+  <div class="upload-section">
+    <div class="upload-card">
+      <div class="upload-zone" id="uploadZone">
+        <div class="upload-icon">📄</div>
+        <h3>Upload PDF Laporan</h3>
+        <p>Tap untuk pilih file atau drag & drop</p>
+        <input type="file" id="fileInput" accept=".pdf" hidden>
+      </div>
+    </div>
+  </div>
+
+  <div class="loading-card" id="loadingCard">
+    <div class="loading-dots"><span></span><span></span><span></span></div>
+    <h3>Menganalisis Laporan...</h3>
+    <p>Memeriksa EYD, nama ilmiah, daftar pustaka & konsistensi</p>
+  </div>
+
+  <div class="result-section" id="resultSection">
+    <div class="student-card animate-in">
+      <div class="student-avatar">👤</div>
+      <div class="student-info">
+        <h3 id="studentName">-</h3>
+        <div class="nim" id="studentNim">NIM: -</div>
+        <div class="title" id="researchTitle">-</div>
+      </div>
+    </div>
+    <div class="stats-grid animate-slide">
+      <div class="stat-card success"><div class="icon">✅</div><div class="value" id="cleanCount">0</div><div class="label">Bersih</div></div>
+      <div class="stat-card warning"><div class="icon">⚠️</div><div class="value" id="warningCount">0</div><div class="label">Ringan</div></div>
+      <div class="stat-card danger"><div class="icon">❌</div><div class="value" id="errorCount">0</div><div class="label">Error</div></div>
+    </div>
+    <div class="score-card animate-slide">
+      <div class="score-header"><h4>📊 Skor EYD</h4><div class="score-value" id="scoreValue">0/25</div></div>
+      <div class="score-bar"><div class="score-fill" id="scoreFill" style="width:0%"></div></div>
+    </div>
+    <div class="category-card animate-slide">
+      <div class="category-header"><h4>📁 Kategori Error</h4></div>
+      <div class="category-list" id="categoryList"></div>
+    </div>
+    <div class="error-card animate-slide">
+      <div class="error-header">
+        <h4>📝 Detail Error</h4>
+        <div class="error-filter">
+          <button class="filter-btn active" onclick="filterErrors('all',this)">Semua</button>
+          <button class="filter-btn" onclick="filterErrors('error',this)">Error</button>
+          <button class="filter-btn" onclick="filterErrors('warning',this)">Ringan</button>
+        </div>
+      </div>
+      <div class="error-list" id="errorList"></div>
+    </div>
+  </div>
+
+  <div class="action-buttons" id="actionButtons" style="display:none;">
+    <button class="btn btn-primary" onclick="saveResult()">💾 Simpan</button>
+    <button class="btn btn-outline" onclick="window.print()">📸 Screenshot</button>
+  </div>
+
+  <div class="history-section">
+    <div class="history-card">
+      <div class="history-header">
+        <h4>🕐 Riwayat Analisis</h4>
+        <button class="clear-btn" onclick="clearHistory()">🗑️ Hapus Semua</button>
+      </div>
+      <div class="history-list" id="historyList">
+        <div class="history-empty"><div class="icon">📭</div><p>Belum ada riwayat</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Program Studi BINGPRO — Politeknik Pertanian Negeri Payakumbuh</p>
+    <p style="margin-top:4px;">Dikembangkan oleh <a href="#">Tika AI Assistant</a></p>
+  </div>
+</div>
+
+<script>
+// ===== PDF.js Setup =====
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let currentResult = null;
+let allErrors = [];
+let history = JSON.parse(localStorage.getItem('analysis_history') || '[]');
+
+document.addEventListener('DOMContentLoaded', function() {
+  setupUpload();
+  renderHistory();
+});
+
+function setupUpload() {
+  const uploadZone = document.getElementById('uploadZone');
+  const fileInput = document.getElementById('fileInput');
+  uploadZone.addEventListener('click', () => fileInput.click());
+  uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); uploadZone.classList.add('dragover'); });
+  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
+  uploadZone.addEventListener('drop', (e) => {
+    e.preventDefault(); uploadZone.classList.remove('dragover');
+    const file = e.dataTransfer.files[0];
+    if (file && file.type === 'application/pdf') analyzeFile(file);
+  });
+  fileInput.addEventListener('change', (e) => { if (e.target.files[0]) analyzeFile(e.target.files[0]); });
+}
+
+// ===== PDF Text Extraction =====
+async function extractTextFromPDF(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const pages = [];
+  
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const textContent = await page.getTextContent();
+    const lines = [];
+    let currentLine = '';
+    let lastY = null;
+    
+    for (const item of textContent.items) {
+      if (lastY !== null && Math.abs(item.transform[5] - lastY) > 5) {
+        if (currentLine.trim()) lines.push(currentLine);
+        currentLine = '';
+      }
+      currentLine += item.str;
+      lastY = item.transform[5];
+    }
+    if (currentLine.trim()) lines.push(currentLine);
+    
+    pages.push({ page: i, text: lines.join('\n') });
+  }
+  
+  return { pages, totalPages: pdf.numPages };
+}
+
+// ===== Analysis Functions (ported from Python) =====
+
+function findBabRange(pages) {
+  let bab1Page = null, kesimpulanPage = null, lampiranPage = null;
+  
+  for (const p of pages) {
+    const upper = p.text.toUpperCase();
+    if (bab1Page === null && (/\bBAB\s+I\b/.test(upper) || upper.includes('PENDAHULUAN'))) bab1Page = p.page;
+    if (upper.includes('KESIMPULAN') && upper.includes('SARAN')) kesimpulanPage = p.page;
+    else if (upper.includes('KESIMPULAN') && kesimpulanPage === null) kesimpulanPage = p.page;
+    if (upper.includes('LAMPIRAN') && lampiranPage === null && bab1Page !== null) lampiranPage = p.page;
+  }
+  
+  const endPage = lampiranPage || (kesimpulanPage ? kesimpulanPage + 1 : null);
+  return { startPage: bab1Page, endPage };
+}
+
+function checkParagraphIndentation(pages) {
+  const errors = [];
+  const { startPage, endPage } = findBabRange(pages);
+  if (!startPage) return errors;
+  
+  const checkPages = pages.filter(p => p.page >= startPage && (!endPage || p.page < endPage));
+  
+  for (const p of checkPages) {
+    const lines = p.text.split('\n');
+    for (const line of lines) {
+      const lineS = line.replace(/\s+$/, '');
+      if (!lineS.trim()) continue;
+      const stripped = lineS.trim();
+      
+      if (['Laporan Penelitian', 'Laporan penelitian', 'Laporan Hasil Penelitian'].includes(stripped)) continue;
+      if (/^\d+$/.test(stripped)) continue;
+      if (/^BAB\s+[IVX]+/i.test(stripped)) continue;
+      if (/^\d+\.\d+\s+[A-Z]/.test(stripped)) continue;
+      if (/^\d+\.\d+\.\d+\s+[A-Z]/.test(stripped)) continue;
+      
+      if (/^[A-Z]/.test(stripped) && stripped.length > 20) {
+        const leadingSpaces = lineS.length - lineS.ltrim().length;
+        if (leadingSpaces !== 5) {
+          let fixMsg;
+          if (leadingSpaces === 0) fixMsg = 'Tambah indentasi 5 spasi (1,27 cm) sesuai EYD';
+          else if (leadingSpaces < 5) fixMsg = `Indentasi kurang (${leading_spaces} spasi). Standar EYD: 5 spasi (1,27 cm)`;
+          else fixMsg = `Indentasi berlebih (${leadingSpaces} spasi). Standar EYD: 5 spasi (1,27 cm)`;
+          errors.push({ page: p.page, type: 'Indentasi Paragraf', severity: 'warning', context: `"${stripped.substring(0, 60)}"`, fix: fixMsg });
+        }
+      }
+    }
+  }
+  return errors;
+}
+
+// String ltrim polyfill
+String.prototype.ltrim = function() { return this.replace(/^\s+/, ''); };
+
+function checkDaftarPustaka(pages) {
+  const errors = [];
+  const references = [];
+  let dpPage = null, collecting = false, currentRef = [];
+  
+  for (const p of pages) {
+    const lines = p.text.split('\n');
+    for (const line of lines) {
+      const lineS = line.trim();
+      if (lineS.toUpperCase().includes('DAFTAR PUSTAKA')) { dpPage = p.page; collecting = true; continue; }
+      if (!collecting) continue;
+      if (lineS.toUpperCase().startsWith('LAMPIRAN') || lineS.toUpperCase().startsWith('DAFTAR ISI')) {
+        if (currentRef.length) { references.push({ page: p.page, text: currentRef.join(' ') }); currentRef = []; }
+        collecting = false; break;
+      }
+      if (!lineS) { if (currentRef.length) { references.push({ page: p.page, text: currentRef.join(' ') }); currentRef = []; } continue; }
+      if (/^[A-Z]/.test(lineS) || /^\d+\./.test(lineS)) {
+        if (currentRef.length) references.push({ page: p.page, text: currentRef.join(' ') });
+        currentRef = [lineS];
+      } else { currentRef.push(lineS); }
+    }
+  }
+  if (currentRef.length) references.push({ page: dpPage || 0, text: currentRef.join(' ') });
+  
+  if (dpPage === null) {
+    errors.push({ page: 0, type: 'Daftar Pustaka', severity: 'error', context: 'Tidak ditemukan bagian "DAFTAR PUSTAKA"', fix: 'Tambahkan bagian "DAFTAR PUSTAKA" di akhir laporan' });
+    return { errors, references };
+  }
+  
+  for (const ref of references) {
+    if (!/^[A-Z][a-z]+,\s*[A-Z]\./.test(ref.text) && !/^\d+\.\s*[A-Z]/.test(ref.text)) {
+      errors.push({ page: ref.page, type: 'Format Daftar Pustaka', severity: 'warning', context: ref.text.substring(0, 100), fix: 'Format penulis tidak sesuai APA. Gunakan: Nama, A. A.' });
+    }
+    if (!/\(\d{4}\)/.test(ref.text) && !/,\s*\d{4}/.test(ref.text)) {
+      errors.push({ page: ref.page, type: 'Format Daftar Pustaka', severity: 'warning', context: ref.text.substring(0, 100), fix: 'Tahun tidak ditemukan. Gunakan: (2024) atau , 2024' });
+    }
+    if (!ref.text.endsWith('.') && !ref.text.endsWith('.)')) {
+      errors.push({ page: ref.page, type: 'Format Daftar Pustaka', severity: 'info', context: ref.text.substring(0, 100), fix: 'Referensi harus diakhiri dengan titik (.)' });
+    }
+  }
+  return { errors, references };
+}
+
+function checkCitationConsistency(pages, references) {
+  const errors = [];
+  let dpPage = null;
+  for (const p of pages) { if (p.text.toUpperCase().includes('DAFTAR PUSTAKA')) { dpPage = p.page; break; } }
+  
+  const citations = new Set();
+  const citedAuthors = {};
+  
+  for (const p of pages) {
+    if (dpPage && p.page >= dpPage) break;
+    const lines = p.text.split('\n');
+    for (const line of lines) {
+      const lineS = line.trim();
+      if (!lineS) continue;
+      
+      const parenCitations = lineS.matchAll(/\(([A-Z][a-z]+(?:\s+(?:et\s+al\.?|dan|and)\s+[A-Z][a-z]+)?),?\s*(\d{4})\)/g);
+      for (const m of parenCitations) {
+        citations.add(`${m[1]}, ${m[2]}`);
+        if (!citedAuthors[m[1]]) citedAuthors[m[1]] = p.page;
+      }
+      
+      const authorCitations = lineS.matchAll(/([A-Z][a-z]+)\s*\((\d{4})\)/g);
+      for (const m of authorCitations) {
+        citations.add(`${m[1]}, ${m[2]}`);
+        if (!citedAuthors[m[1]]) citedAuthors[m[1]] = p.page;
+      }
+    }
+  }
+  
+  const refAuthors = {};
+  for (const ref of references) {
+    const m = ref.text.match(/^([A-Z][a-z]+)/);
+    if (m) refAuthors[m[1]] = ref.page;
+  }
+  
+  for (const cit of citations) {
+    const author = cit.split(',')[0].trim();
+    if (!refAuthors[author]) {
+      errors.push({ page: citedAuthors[author] || 0, type: 'Konsistensi Sitasi', severity: 'warning', context: `Sitasi "${cit}" di teks`, fix: `Author "${author}" tidak ditemukan di Daftar Pustaka` });
+    }
+  }
+  
+  for (const [author, page] of Object.entries(refAuthors)) {
+    if (!citedAuthors[author]) {
+      errors.push({ page, type: 'Konsistensi Sitasi', severity: 'warning', context: `Author "${author}" di Daftar Pustaka`, fix: `Author "${author}" tidak pernah disitasi di teks` });
+    }
+  }
+  return errors;
+}
+
+function checkScientificNames(pages) {
+  const errors = [];
+  const patterns = [
+    [/\b(oryza)\s+(sativa)\b/gi, 'Oryza sativa'],
+    [/\b(zea)\s+(mays)\b/gi, 'Zea mays'],
+    [/\b(glycine)\s+(max)\b/gi, 'Glycine max'],
+    [/\b(manihot)\s+(esculenta)\b/gi, 'Manihot esculenta'],
+    [/\b(hevea)\s+(brasiliensis)\b/gi, 'Hevea brasiliensis'],
+    [/\b(elaeis)\s+(guineensis)\b/gi, 'Elaeis guineensis'],
+    [/\b(theobroma)\s+(cacao)\b/gi, 'Theobroma cacao'],
+    [/\b(coffea)\s+(arabica)\b/gi, 'Coffea arabica'],
+    [/\b(piper)\s+(nigrum)\b/gi, 'Piper nigrum'],
+    [/\b(cocos)\s+(nucifera)\b/gi, 'Cocos nucifera'],
+    [/\b(solanum)\s+(lycopersicum)\b/gi, 'Solanum lycopersicum'],
+    [/\b(solanum)\s+(tuberosum)\b/gi, 'Solanum tuberosum'],
+    [/\b(allium)\s+(cepa)\b/gi, 'Allium cepa'],
+    [/\b(allium)\s+(sativum)\b/gi, 'Allium sativum'],
+    [/\b(capsicum)\s+(annuum)\b/gi, 'Capsicum annuum'],
+    [/\b(brassica)\s+(oleracea)\b/gi, 'Brassica oleracea'],
+    [/\b(phaseolus)\s+(vulgaris)\b/gi, 'Phaseolus vulgaris'],
+    [/\b(vigna)\s+(radiata)\b/gi, 'Vigna radiata'],
+    [/\b(arachis)\s+(hypogaea)\b/gi, 'Arachis hypogaea'],
+    [/\b(sesamum)\s+(indicum)\b/gi, 'Sesamum indicum'],
+  ];
+  
+  for (const p of pages) {
+    const lines = p.text.split('\n');
+    for (const line of lines) {
+      const lineS = line.trim();
+      if (!lineS) continue;
+      
+      for (const [pattern, correctName] of patterns) {
+        const regex = new RegExp(pattern.source, pattern.flags);
+        let match;
+        while ((match = regex.exec(lineS)) !== null) {
+          const genus = match[1], species = match[2];
+          if (genus[0] === genus[0].toLowerCase()) {
+            errors.push({ page: p.page, type: 'Nama Ilmiah', severity: 'error', context: lineS.substring(0, 100), fix: `Genus "${genus}" harus kapital → "${genus.charAt(0).toUpperCase() + genus.slice(1)} ${species}"` });
+          }
+          if (species[0] === species[0].toUpperCase()) {
+            errors.push({ page: p.page, type: 'Nama Ilmiah', severity: 'error', context: lineS.substring(0, 100), fix: `Species "${species}" harus huruf kecil → "${genus} ${species.toLowerCase()}"` });
+          }
+        }
+      }
+      
+      if (/\b[A-Z][a-z]+\s+[a-z]+\s+L\b(?!\.)/.test(lineS)) {
+        errors.push({ page: p.page, type: 'Nama Ilmiah', severity: 'warning', context: lineS.substring(0, 100), fix: 'Penulis "L" harus ditulis "L." (dengan titik)' });
+      }
+    }
+  }
+  return errors;
+}
+
+function checkDaftarIsiConsistency(pages) {
+  const errors = [];
+  let diPage = null;
+  const diEntries = [];
+  
+  for (const p of pages) {
+    const lines = p.text.split('\n');
+    for (const line of lines) {
+      const lineS = line.trim();
+      if (lineS.toUpperCase().includes('DAFTAR ISI') && diPage === null) { diPage = p.page; continue; }
+      if (diPage && p.page === diPage) {
+        const m = lineS.match(/^\d+\.\d*\s+([A-Z].+)/);
+        if (m) diEntries.push(m[1].trim());
+      }
+    }
+  }
+  
+  if (diPage) {
+    for (const entry of diEntries) {
+      let found = false;
+      for (const p of pages) {
+        if (p.page > diPage && p.text.toUpperCase().includes(entry.toUpperCase())) { found = true; break; }
+      }
+      if (!found) {
+        errors.push({ page: diPage, type: 'Konsistensi Daftar Isi', severity: 'warning', context: `"${entry}"`, fix: 'Judul ini di Daftar Isi tidak ditemukan di isi laporan' });
+      }
+    }
+  }
+  return errors;
+}
+
+function analyzeReport(pages) {
+  const errors = [];
+  
+  // Basic EYD checks
+  for (const p of pages) {
+    const lines = p.text.split('\n');
+    for (const line of lines) {
+      const lineS = line.trim();
+      if (!lineS) continue;
+      if (['Laporan Penelitian', 'Laporan penelitian', 'Laporan Hasil Penelitian'].includes(lineS)) continue;
+      
+      if (/\byang\s+yang\b/i.test(lineS)) errors.push({ page: p.page, type: 'Duplikasi kata', severity: 'error', context: lineS.substring(0, 100), fix: 'Hapus salah satu "yang"' });
+      if (/\bdimana\b/i.test(lineS)) errors.push({ page: p.page, type: 'Ejaan', severity: 'warning', context: lineS.substring(0, 100), fix: '"dimana" → "di mana"' });
+      if (/\bdibawah\b/i.test(lineS)) errors.push({ page: p.page, type: 'Ejaan', severity: 'warning', context: lineS.substring(0, 100), fix: '"dibawah" → "di bawah"' });
+      if (/\bdiatas\b/i.test(lineS)) errors.push({ page: p.page, type: 'Ejaan', severity: 'warning', context: lineS.substring(0, 100), fix: '"diatas" → "di atas"' });
+      if (/\bdiantara\b/i.test(lineS)) errors.push({ page: p.page, type: 'Ejaan', severity: 'warning', context: lineS.substring(0, 100), fix: '"diantara" → "di antara"' });
+      if (/masing\s+[–-]\s+masing/.test(lineS)) errors.push({ page: p.page, type: 'Spasi', severity: 'warning', context: lineS.substring(0, 100), fix: '"masing – masing" → "masing-masing"' });
+      if (/rata-\s+rata/.test(lineS)) errors.push({ page: p.page, type: 'Spasi', severity: 'warning', context: lineS.substring(0, 100), fix: '"rata- rata" → "rata-rata"' });
+      if (/,\s*SS\.,/.test(lineS)) errors.push({ page: p.page, type: 'Gelar', severity: 'warning', context: lineS.substring(0, 100), fix: '"SS." → "S.S."' });
+      if (/kehadiran allah/i.test(lineS)) errors.push({ page: p.page, type: 'Ejaan', severity: 'warning', context: lineS.substring(0, 100), fix: '"kehadiran Allah" → "ke hadirat Allah"' });
+      if (/propsal/i.test(lineS)) errors.push({ page: p.page, type: 'Typo', severity: 'error', context: lineS.substring(0, 100), fix: '"propsal" → "proposal"' });
+      if (/berbedaptasi/i.test(lineS)) errors.push({ page: p.page, type: 'Typo', severity: 'error', context: lineS.substring(0, 100), fix: '"berbedaptasi" → "beradaptasi"' });
+      if (/,\s*M\.P\s+(?![dSi])/.test(lineS)) errors.push({ page: p.page, type: 'Gelar', severity: 'warning', context: lineS.substring(0, 100), fix: '"M.P" → "M.P."' });
+    }
+  }
+  
+  errors.push(...checkParagraphIndentation(pages));
+  errors.push(...checkScientificNames(pages));
+  errors.push(...checkDaftarIsiConsistency(pages));
+  
+  const { errors: pustakaErrors, references } = checkDaftarPustaka(pages);
+  errors.push(...pustakaErrors);
+  errors.push(...checkCitationConsistency(pages, references));
+  
+  return errors;
+}
+
+function calculateScore(errors) {
+  const errorCount = errors.filter(e => e.severity === 'error').length;
+  const warningCount = errors.filter(e => e.severity === 'warning').length;
+  return Math.max(0, 25 - (errorCount * 3) - (warningCount * 1));
+}
+
+// ===== Main Analyze Function =====
+async function analyzeFile(file) {
+  document.getElementById('loadingCard').classList.add('show');
+  document.getElementById('resultSection').classList.remove('show');
+  document.getElementById('actionButtons').style.display = 'none';
+  
+  try {
+    const { pages, totalPages } = await extractTextFromPDF(file);
+    const errors = analyzeReport(pages);
+    const eydScore = calculateScore(errors);
+    
+    const errorCategories = {};
+    for (const error of errors) {
+      if (!errorCategories[error.type]) errorCategories[error.type] = [];
+      errorCategories[error.type].push(error);
+    }
+    
+    // Extract student info from first pages
+    let studentName = '', studentNim = '', researchTitle = '';
+    for (const p of pages.slice(0, 3)) {
+      const lines = p.text.split('\n');
+      for (const line of lines) {
+        const lineS = line.trim();
+        if (!lineS) continue;
+        if (/^[A-Z][a-z]+\s+[A-Z][a-z]+$/.test(lineS) && lineS.length < 30 && !studentName) studentName = lineS;
+        const nimMatch = lineS.match(/^NIM\.\s*(\d+)/);
+        if (nimMatch) studentNim = nimMatch[1];
+        if (/^[A-Z\s]+$/.test(lineS) && lineS.length > 20 && lineS.length < 200 && !researchTitle) researchTitle = lineS;
+      }
+    }
+    
+    currentResult = {
+      totalPages, errors, error_categories: errorCategories,
+      eyd_score: eydScore,
+      error_count: errors.filter(e => e.severity === 'error').length,
+      warning_count: errors.filter(e => e.severity === 'warning').length,
+      total_errors: errors.length,
+      student_name: studentName, student_nim: studentNim, research_title: researchTitle
+    };
+    allErrors = errors;
+    
+    displayResult(currentResult);
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error menganalisis file: ' + error.message);
+  } finally {
+    document.getElementById('loadingCard').classList.remove('show');
+  }
+}
+
+// ===== Display Functions =====
+function displayResult(data) {
+  document.getElementById('studentName').textContent = data.student_name || 'Nama tidak terdeteksi';
+  document.getElementById('studentNim').textContent = `NIM: ${data.student_nim || '-'}`;
+  document.getElementById('researchTitle').textContent = data.research_title || 'Judul tidak terdeteksi';
+  
+  document.getElementById('cleanCount').textContent = Math.max(0, 100 - data.total_errors);
+  document.getElementById('warningCount').textContent = data.warning_count;
+  document.getElementById('errorCount').textContent = data.error_count;
+  
+  const scorePercent = (data.eyd_score / 25) * 100;
+  const scoreFill = document.getElementById('scoreFill');
+  scoreFill.style.width = `${scorePercent}%`;
+  scoreFill.className = scorePercent >= 80 ? 'score-fill' : scorePercent >= 60 ? 'score-fill warning' : 'score-fill danger';
+  document.getElementById('scoreValue').textContent = `${data.eyd_score}/25`;
+  
+  const categoryList = document.getElementById('categoryList');
+  categoryList.innerHTML = '';
+  for (const [category, errs] of Object.entries(data.error_categories)) {
+    const errCount = errs.filter(e => e.severity === 'error').length;
+    const warnCount = errs.filter(e => e.severity === 'warning').length;
+    let badgeClass = 'info', badgeText = `${errs.length}`;
+    if (errCount > 0) { badgeClass = 'error'; badgeText = `${errCount} error`; }
+    else if (warnCount > 0) { badgeClass = 'warning'; badgeText = `${warnCount} ringan`; }
+    categoryList.innerHTML += `<div class="category-item" onclick="filterByCategory('${category}')"><span class="name">${category}</span><span class="badge ${badgeClass}">${badgeText}</span></div>`;
+  }
+  
+  renderErrors(data.errors);
+  document.getElementById('resultSection').classList.add('show');
+  document.getElementById('actionButtons').style.display = 'flex';
+}
+
+function renderErrors(errors) {
+  const errorList = document.getElementById('errorList');
+  if (errors.length === 0) {
+    errorList.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Tidak ada error ditemukan 🎉</div>';
+    return;
+  }
+  errorList.innerHTML = errors.map(e => `
+    <div class="error-item ${e.severity}">
+      <div class="line">📄 Halaman ${e.page}</div>
+      <div class="type">${e.type}</div>
+      <div class="context">${e.context}</div>
+      <div class="fix">${e.fix}</div>
+    </div>
+  `).join('');
+}
+
+function filterErrors(severity, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderErrors(severity === 'all' ? allErrors : allErrors.filter(e => e.severity === severity));
+}
+
+function filterByCategory(category) {
+  renderErrors(allErrors.filter(e => e.type === category));
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+}
+
+// ===== Save/History =====
+function saveResult() {
+  if (!currentResult) return;
+  const entry = {
+    id: Date.now(),
+    date: new Date().toLocaleDateString('id-ID'),
+    student_name: currentResult.student_name || 'Unknown',
+    student_nim: currentResult.student_nim || '-',
+    research_title: currentResult.research_title || '-',
+    total_errors: currentResult.total_errors,
+    errors: currentResult.errors
+  };
+  history.unshift(entry);
+  localStorage.setItem('analysis_history', JSON.stringify(history));
+  renderHistory();
+  
+  const btn = event.target.closest('.btn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '✅ Tersimpan!';
+  btn.style.background = 'var(--success)';
+  setTimeout(() => { btn.innerHTML = originalText; btn.style.background = ''; }, 2000);
+}
+
+function renderHistory() {
+  const historyList = document.getElementById('historyList');
+  if (history.length === 0) {
+    historyList.innerHTML = '<div class="history-empty"><div class="icon">📭</div><p>Belum ada riwayat</p></div>';
+    return;
+  }
+  historyList.innerHTML = history.slice(0, 10).map(item => `
+    <div class="history-item" onclick="loadHistory(${item.id})">
+      <div class="history-icon">📄</div>
+      <div class="history-info">
+        <div class="name">${item.student_name}</div>
+        <div class="date">${item.date} • ${item.total_errors} error</div>
+      </div>
+      <div class="history-badge">${item.total_errors}</div>
+    </div>
+  `).join('');
+}
+
+function loadHistory(id) {
+  const entry = history.find(h => h.id === id);
+  if (entry) {
+    displayResult({
+      student_name: entry.student_name, student_nim: entry.student_nim, research_title: entry.research_title,
+      total_errors: entry.total_errors,
+      error_count: entry.errors.filter(e => e.severity === 'error').length,
+      warning_count: entry.errors.filter(e => e.severity === 'warning').length,
+      eyd_score: Math.max(0, 25 - (entry.errors.filter(e => e.severity === 'error').length * 3) - (entry.errors.filter(e => e.severity === 'warning').length * 1)),
+      error_categories: entry.errors.reduce((acc, err) => { if (!acc[err.type]) acc[err.type] = []; acc[err.type].push(err); return acc; }, {}),
+      errors: entry.errors
+    });
+  }
+}
+
+function clearHistory() {
+  if (confirm('Hapus semua riwayat analisis?')) {
+    history = [];
+    localStorage.removeItem('analysis_history');
+    renderHistory();
+  }
+}
+</script>
+</body>
+</html>
