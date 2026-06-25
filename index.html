@@ -237,6 +237,9 @@ let currentResult = null;
 let allErrors = [];
 let history = JSON.parse(localStorage.getItem('analysis_history') || '[]');
 
+// String ltrim polyfill
+String.prototype.ltrim = function() { return this.replace(/^\s+/, ''); };
+
 document.addEventListener('DOMContentLoaded', function() {
   setupUpload();
   renderHistory();
@@ -327,7 +330,7 @@ function checkParagraphIndentation(pages) {
         if (leadingSpaces !== 5) {
           let fixMsg;
           if (leadingSpaces === 0) fixMsg = 'Tambah indentasi 5 spasi (1,27 cm) sesuai EYD';
-          else if (leadingSpaces < 5) fixMsg = `Indentasi kurang (${leading_spaces} spasi). Standar EYD: 5 spasi (1,27 cm)`;
+          else if (leadingSpaces < 5) fixMsg = `Indentasi kurang (${leadingSpaces} spasi). Standar EYD: 5 spasi (1,27 cm)`;
           else fixMsg = `Indentasi berlebih (${leadingSpaces} spasi). Standar EYD: 5 spasi (1,27 cm)`;
           errors.push({ page: p.page, type: 'Indentasi Paragraf', severity: 'warning', context: `"${stripped.substring(0, 60)}"`, fix: fixMsg });
         }
@@ -336,9 +339,6 @@ function checkParagraphIndentation(pages) {
   }
   return errors;
 }
-
-// String ltrim polyfill
-String.prototype.ltrim = function() { return this.replace(/^\s+/, ''); };
 
 function checkDaftarPustaka(pages) {
   const errors = [];
