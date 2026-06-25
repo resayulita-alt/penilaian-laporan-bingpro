@@ -10,8 +10,6 @@
 <title>Analisis Laporan — BINGPRO</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/docx/build/index.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <style>
 :root {
   --primary: #6366f1;
@@ -736,155 +734,92 @@ function clearHistory() {
   }
 }
 
-// ===== Export DOC =====
-async function exportDOC() {
+// ===== Export DOC (HTML-based, no external libs) =====
+function exportDOC() {
   if (!currentResult) { alert('Tidak ada hasil untuk di-export'); return; }
-
-  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle, HeadingLevel, ShadingType } = docx;
-
   const data = currentResult;
   const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
 
-  // Build error rows for table
-  const errorRows = data.errors.map((e, i) =>
-    new TableRow({
-      children: [
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(i + 1), size: 20 })], alignment: AlignmentType.CENTER })], width: { size: 500, type: WidthType.DXA } }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(e.page), size: 20 })], alignment: AlignmentType.CENTER })], width: { size: 700, type: WidthType.DXA } }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: e.type, size: 20, bold: true, color: e.severity === 'error' ? 'CC0000' : 'CC8800' })] })], width: { size: 2000, type: WidthType.DXA } }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: e.severity === 'error' ? 'Error' : 'Ringan', size: 20, color: e.severity === 'error' ? 'CC0000' : 'CC8800' })], alignment: AlignmentType.CENTER })], width: { size: 900, type: WidthType.DXA } }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: e.context || '-', size: 18, italics: true })] })], width: { size: 3000, type: WidthType.DXA } }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: e.fix || '-', size: 18 })] })], width: { size: 3500, type: WidthType.DXA } }),
-      ]
-    })
-  );
+  // Build category rows
+  let catRows = '';
+  for (const [cat, errs] of Object.entries(data.error_categories || {})) {
+    const errC = errs.filter(e => e.severity === 'error').length;
+    const warnC = errs.filter(e => e.severity === 'warning').length;
+    catRows += `<tr><td>${cat}</td><td style="text-align:center;color:#CC0000">${errC}</td><td style="text-align:center;color:#CC8800">${warnC}</td><td style="text-align:center;font-weight:bold">${errs.length}</td></tr>`;
+  }
 
-  // Category summary
-  const categoryEntries = Object.entries(data.error_categories || {});
-  const categoryRows = categoryEntries.map(([cat, errs]) =>
-    new TableRow({
-      children: [
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: cat, size: 22 })] })], width: { size: 4000, type: WidthType.DXA } }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(errs.filter(e => e.severity === 'error').length), size: 22, color: 'CC0000' })], alignment: AlignmentType.CENTER })], width: { size: 1500, type: WidthType.DXA } }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(errs.filter(e => e.severity === 'warning').length), size: 22, color: 'CC8800' })], alignment: AlignmentType.CENTER })], width: { size: 1500, type: WidthType.DXA } }),
-        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(errs.length), size: 22, bold: true })], alignment: AlignmentType.CENTER })], width: { size: 1500, type: WidthType.DXA } }),
-      ]
-    })
-  );
-
-  const doc = new Document({
-    styles: { default: { document: { run: { font: 'Calibri', size: 24 } } } },
-    sections: [{
-      properties: { page: { margin: { top: 1000, bottom: 1000, left: 1200, right: 1200 } } },
-      children: [
-        // Title
-        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [
-          new TextRun({ text: 'LAPORAN ANALISIS DOKUMEN', bold: true, size: 32, font: 'Calibri' })
-        ]}),
-        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [
-          new TextRun({ text: 'Program Studi BINGPRO — Politeknik Pertanian Negeri Payakumbuh', size: 22, color: '666666', font: 'Calibri' })
-        ]}),
-        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 300 }, children: [
-          new TextRun({ text: `Tanggal: ${today}`, size: 20, color: '888888', font: 'Calibri' })
-        ]}),
-
-        // Garis pemisah
-        new Paragraph({ spacing: { after: 200 }, border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '6366F1' } }, children: [] }),
-
-        // Info Mahasiswa
-        new Paragraph({ spacing: { before: 200, after: 100 }, children: [
-          new TextRun({ text: 'INFORMASI MAHASISWA', bold: true, size: 26, color: '6366F1', font: 'Calibri' })
-        ]}),
-        new Paragraph({ spacing: { after: 60 }, children: [
-          new TextRun({ text: 'Nama: ', bold: true, size: 22, font: 'Calibri' }),
-          new TextRun({ text: data.student_name || 'Tidak terdeteksi', size: 22, font: 'Calibri' })
-        ]}),
-        new Paragraph({ spacing: { after: 60 }, children: [
-          new TextRun({ text: 'NIM: ', bold: true, size: 22, font: 'Calibri' }),
-          new TextRun({ text: data.student_nim || '-', size: 22, font: 'Calibri' })
-        ]}),
-        new Paragraph({ spacing: { after: 200 }, children: [
-          new TextRun({ text: 'Judul Penelitian: ', bold: true, size: 22, font: 'Calibri' }),
-          new TextRun({ text: data.research_title || 'Tidak terdeteksi', size: 22, font: 'Calibri' })
-        ]}),
-
-        // Statistik
-        new Paragraph({ spacing: { before: 200, after: 100 }, children: [
-          new TextRun({ text: 'STATISTIK ANALISIS', bold: true, size: 26, color: '6366F1', font: 'Calibri' })
-        ]}),
-        new Paragraph({ spacing: { after: 60 }, children: [
-          new TextRun({ text: 'Total Halaman: ', bold: true, size: 22, font: 'Calibri' }),
-          new TextRun({ text: String(data.totalPages || '-'), size: 22, font: 'Calibri' })
-        ]}),
-        new Paragraph({ spacing: { after: 60 }, children: [
-          new TextRun({ text: 'Skor EYD: ', bold: true, size: 22, font: 'Calibri' }),
-          new TextRun({ text: `${data.eyd_score}/25`, size: 22, bold: true, color: data.eyd_score >= 20 ? '10B981' : data.eyd_score >= 15 ? 'F59E0B' : 'EF4444', font: 'Calibri' })
-        ]}),
-        new Paragraph({ spacing: { after: 60 }, children: [
-          new TextRun({ text: 'Total Error: ', bold: true, size: 22, font: 'Calibri' }),
-          new TextRun({ text: String(data.error_count), size: 22, color: 'CC0000', font: 'Calibri' }),
-          new TextRun({ text: '  |  Warning: ', bold: true, size: 22, font: 'Calibri' }),
-          new TextRun({ text: String(data.warning_count), size: 22, color: 'CC8800', font: 'Calibri' })
-        ]}),
-
-        // Kategori Error
-        new Paragraph({ spacing: { before: 300, after: 100 }, children: [
-          new TextRun({ text: 'RINGKASAN KATEGORI ERROR', bold: true, size: 26, color: '6366F1', font: 'Calibri' })
-        ]}),
-        new Table({
-          width: { size: 100, type: WidthType.PERCENTAGE },
-          rows: [
-            new TableRow({
-              children: [
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Kategori', bold: true, size: 22, color: 'FFFFFF', font: 'Calibri' })] })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 4000, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Error', bold: true, size: 22, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 1500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Ringan', bold: true, size: 22, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 1500, type: WidthType.DXA } }),
-                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Total', bold: true, size: 22, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 1500, type: WidthType.DXA } }),
-              ]
-            }),
-            ...categoryRows
-          ]
-        }),
-
-        // Detail Error
-        new Paragraph({ spacing: { before: 300, after: 100 }, children: [
-          new TextRun({ text: 'DETAIL ERROR DAN PERBAIKAN', bold: true, size: 26, color: '6366F1', font: 'Calibri' })
-        ]}),
-        ...(data.errors.length === 0 ? [new Paragraph({ children: [new TextRun({ text: 'Tidak ada error ditemukan. Selamat! 🎉', size: 22, color: '10B981', font: 'Calibri' })] })] : [
-          new Table({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            rows: [
-              new TableRow({
-                children: [
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'No', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 500, type: WidthType.DXA } }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Hal.', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 700, type: WidthType.DXA } }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Jenis', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })] })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 2000, type: WidthType.DXA } }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Severity', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 900, type: WidthType.DXA } }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Konteks', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })] })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 3000, type: WidthType.DXA } }),
-                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Perbaikan', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })] })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 3500, type: WidthType.DXA } }),
-                ]
-              }),
-              ...errorRows
-            ]
-          })
-        ]),
-
-        // Footer
-        new Paragraph({ spacing: { before: 400 }, border: { top: { style: BorderStyle.SINGLE, size: 6, color: '6366F1' } }, children: [] }),
-        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 100 }, children: [
-          new TextRun({ text: 'Dokumen ini dihasilkan oleh Aplikasi Analisis Laporan — BINGPRO', size: 18, color: '888888', italics: true, font: 'Calibri' })
-        ]}),
-        new Paragraph({ alignment: AlignmentType.CENTER, children: [
-          new TextRun({ text: 'Politeknik Pertanian Negeri Payakumbuh', size: 18, color: '888888', italics: true, font: 'Calibri' })
-        ]}),
-      ]
-    }]
+  // Build error rows
+  let errRows = '';
+  (data.errors || []).forEach((e, i) => {
+    const color = e.severity === 'error' ? '#CC0000' : '#CC8800';
+    const sev = e.severity === 'error' ? 'Error' : 'Ringan';
+    errRows += `<tr><td style="text-align:center">${i+1}</td><td style="text-align:center">${e.page}</td><td style="color:${color};font-weight:bold">${e.type}</td><td style="text-align:center;color:${color}">${sev}</td><td style="font-style:italic;font-size:11px">${e.context||'-'}</td><td style="font-size:11px">${e.fix||'-'}</td></tr>`;
   });
 
-  // Generate and download
-  const blob = await Packer.toBlob(doc);
-  const fileName = `Analisis_${(data.student_name || 'Laporan').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.docx`;
-  saveAs(blob, fileName);
+  const scoreColor = data.eyd_score >= 20 ? '#10B981' : data.eyd_score >= 15 ? '#F59E0B' : '#EF4444';
+
+  const html = `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<style>
+body{font-family:Calibri,Arial,sans-serif;font-size:12px;color:#1e293b;margin:40px}
+h1{text-align:center;font-size:18px;margin-bottom:2px}
+h2{text-align:center;font-size:12px;color:#666;margin-top:0}
+h3{font-size:14px;color:#6366f1;margin-top:20px;margin-bottom:8px;border-bottom:2px solid #6366f1;padding-bottom:4px}
+table{width:100%;border-collapse:collapse;margin-bottom:16px}
+th{background:#6366f1;color:white;padding:6px 8px;text-align:left;font-size:11px}
+td{padding:5px 8px;border:1px solid #ddd;font-size:11px}
+tr:nth-child(even){background:#f8fafc}
+.info td{border:none;padding:3px 0}
+.info td:first-child{font-weight:bold;width:140px}
+.footer{text-align:center;margin-top:30px;color:#888;font-size:10px;font-style:italic;border-top:1px solid #6366f1;padding-top:8px}
+</style></head><body>
+<h1>LAPORAN ANALISIS DOKUMEN</h1>
+<h2>Program Studi BINGPRO — Politeknik Pertanian Negeri Payakumbuh</h2>
+<p style="text-align:center;color:#888;font-size:11px">Tanggal: ${today}</p>
+<hr style="border:1px solid #6366f1">
+
+<h3>INFORMASI MAHASISWA</h3>
+<table class="info">
+<tr><td>Nama</td><td>: ${data.student_name||'Tidak terdeteksi'}</td></tr>
+<tr><td>NIM</td><td>: ${data.student_nim||'-'}</td></tr>
+<tr><td>Judul Penelitian</td><td>: ${data.research_title||'Tidak terdeteksi'}</td></tr>
+</table>
+
+<h3>STATISTIK ANALISIS</h3>
+<table class="info">
+<tr><td>Total Halaman</td><td>: ${data.totalPages||'-'}</td></tr>
+<tr><td>Skor EYD</td><td>: <span style="color:${scoreColor};font-weight:bold;font-size:14px">${data.eyd_score}/25</span></td></tr>
+<tr><td>Total Error</td><td>: <span style="color:#CC0000">${data.error_count}</span> &nbsp;|&nbsp; Warning: <span style="color:#CC8800">${data.warning_count}</span></td></tr>
+</table>
+
+<h3>RINGKASAN KATEGORI</h3>
+<table>
+<tr><th>Kategori</th><th>Error</th><th>Ringan</th><th>Total</th></tr>
+${catRows}
+</table>
+
+<h3>DETAIL ERROR DAN PERBAIKAN</h3>
+${data.errors.length === 0 ? '<p style="color:#10B981">Tidak ada error ditemukan.</p>' : `<table>
+<tr><th>No</th><th>Hal.</th><th>Jenis</th><th>Severity</th><th>Konteks</th><th>Perbaikan</th></tr>
+${errRows}
+</table>`}
+
+<div class="footer">
+Dokumen ini dihasilkan oleh Aplikasi Analisis Laporan — BINGPRO<br>
+Politeknik Pertanian Negeri Payakumbuh
+</div>
+</body></html>`;
+
+  // Download as .doc (HTML format that Word/WPS can open)
+  const blob = new Blob([html], { type: 'application/msword' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'Analisis_' + (data.student_name || 'Laporan').replace(/\s+/g, '_') + '_' + new Date().toISOString().slice(0,10) + '.doc';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 
   // Feedback
   const btn = event.target.closest('.btn');
