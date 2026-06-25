@@ -10,6 +10,8 @@
 <title>Analisis Laporan — BINGPRO</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
 <style>
 :root {
   --primary: #6366f1;
@@ -205,6 +207,7 @@ body { font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-ser
 
   <div class="action-buttons" id="actionButtons" style="display:none;">
     <button class="btn btn-primary" onclick="saveResult()">💾 Simpan</button>
+    <button class="btn btn-outline" onclick="exportDOC()">📄 Export DOC</button>
     <button class="btn btn-outline" onclick="window.print()">📸 Screenshot</button>
   </div>
 
@@ -728,6 +731,165 @@ function clearHistory() {
     localStorage.removeItem('analysis_history');
     renderHistory();
   }
+}
+
+// ===== Export DOC =====
+async function exportDOC() {
+  if (!currentResult) { alert('Tidak ada hasil untuk di-export'); return; }
+
+  const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType, AlignmentType, BorderStyle, HeadingLevel, ShadingType } = docx;
+
+  const data = currentResult;
+  const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+  // Build error rows for table
+  const errorRows = data.errors.map((e, i) =>
+    new TableRow({
+      children: [
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(i + 1), size: 20 })], alignment: AlignmentType.CENTER })], width: { size: 500, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(e.page), size: 20 })], alignment: AlignmentType.CENTER })], width: { size: 700, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: e.type, size: 20, bold: true, color: e.severity === 'error' ? 'CC0000' : 'CC8800' })] })], width: { size: 2000, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: e.severity === 'error' ? 'Error' : 'Ringan', size: 20, color: e.severity === 'error' ? 'CC0000' : 'CC8800' })], alignment: AlignmentType.CENTER })], width: { size: 900, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: e.context || '-', size: 18, italics: true })] })], width: { size: 3000, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: e.fix || '-', size: 18 })] })], width: { size: 3500, type: WidthType.DXA } }),
+      ]
+    })
+  );
+
+  // Category summary
+  const categoryEntries = Object.entries(data.error_categories || {});
+  const categoryRows = categoryEntries.map(([cat, errs]) =>
+    new TableRow({
+      children: [
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: cat, size: 22 })] })], width: { size: 4000, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(errs.filter(e => e.severity === 'error').length), size: 22, color: 'CC0000' })], alignment: AlignmentType.CENTER })], width: { size: 1500, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(errs.filter(e => e.severity === 'warning').length), size: 22, color: 'CC8800' })], alignment: AlignmentType.CENTER })], width: { size: 1500, type: WidthType.DXA } }),
+        new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: String(errs.length), size: 22, bold: true })], alignment: AlignmentType.CENTER })], width: { size: 1500, type: WidthType.DXA } }),
+      ]
+    })
+  );
+
+  const doc = new Document({
+    styles: { default: { document: { run: { font: 'Calibri', size: 24 } } } },
+    sections: [{
+      properties: { page: { margin: { top: 1000, bottom: 1000, left: 1200, right: 1200 } } },
+      children: [
+        // Title
+        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [
+          new TextRun({ text: 'LAPORAN ANALISIS DOKUMEN', bold: true, size: 32, font: 'Calibri' })
+        ]}),
+        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 100 }, children: [
+          new TextRun({ text: 'Program Studi BINGPRO — Politeknik Pertanian Negeri Payakumbuh', size: 22, color: '666666', font: 'Calibri' })
+        ]}),
+        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { after: 300 }, children: [
+          new TextRun({ text: `Tanggal: ${today}`, size: 20, color: '888888', font: 'Calibri' })
+        ]}),
+
+        // Garis pemisah
+        new Paragraph({ spacing: { after: 200 }, border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '6366F1' } }, children: [] }),
+
+        // Info Mahasiswa
+        new Paragraph({ spacing: { before: 200, after: 100 }, children: [
+          new TextRun({ text: 'INFORMASI MAHASISWA', bold: true, size: 26, color: '6366F1', font: 'Calibri' })
+        ]}),
+        new Paragraph({ spacing: { after: 60 }, children: [
+          new TextRun({ text: 'Nama: ', bold: true, size: 22, font: 'Calibri' }),
+          new TextRun({ text: data.student_name || 'Tidak terdeteksi', size: 22, font: 'Calibri' })
+        ]}),
+        new Paragraph({ spacing: { after: 60 }, children: [
+          new TextRun({ text: 'NIM: ', bold: true, size: 22, font: 'Calibri' }),
+          new TextRun({ text: data.student_nim || '-', size: 22, font: 'Calibri' })
+        ]}),
+        new Paragraph({ spacing: { after: 200 }, children: [
+          new TextRun({ text: 'Judul Penelitian: ', bold: true, size: 22, font: 'Calibri' }),
+          new TextRun({ text: data.research_title || 'Tidak terdeteksi', size: 22, font: 'Calibri' })
+        ]}),
+
+        // Statistik
+        new Paragraph({ spacing: { before: 200, after: 100 }, children: [
+          new TextRun({ text: 'STATISTIK ANALISIS', bold: true, size: 26, color: '6366F1', font: 'Calibri' })
+        ]}),
+        new Paragraph({ spacing: { after: 60 }, children: [
+          new TextRun({ text: 'Total Halaman: ', bold: true, size: 22, font: 'Calibri' }),
+          new TextRun({ text: String(data.totalPages || '-'), size: 22, font: 'Calibri' })
+        ]}),
+        new Paragraph({ spacing: { after: 60 }, children: [
+          new TextRun({ text: 'Skor EYD: ', bold: true, size: 22, font: 'Calibri' }),
+          new TextRun({ text: `${data.eyd_score}/25`, size: 22, bold: true, color: data.eyd_score >= 20 ? '10B981' : data.eyd_score >= 15 ? 'F59E0B' : 'EF4444', font: 'Calibri' })
+        ]}),
+        new Paragraph({ spacing: { after: 60 }, children: [
+          new TextRun({ text: 'Total Error: ', bold: true, size: 22, font: 'Calibri' }),
+          new TextRun({ text: String(data.error_count), size: 22, color: 'CC0000', font: 'Calibri' }),
+          new TextRun({ text: '  |  Warning: ', bold: true, size: 22, font: 'Calibri' }),
+          new TextRun({ text: String(data.warning_count), size: 22, color: 'CC8800', font: 'Calibri' })
+        ]}),
+
+        // Kategori Error
+        new Paragraph({ spacing: { before: 300, after: 100 }, children: [
+          new TextRun({ text: 'RINGKASAN KATEGORI ERROR', bold: true, size: 26, color: '6366F1', font: 'Calibri' })
+        ]}),
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Kategori', bold: true, size: 22, color: 'FFFFFF', font: 'Calibri' })] })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 4000, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Error', bold: true, size: 22, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 1500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Ringan', bold: true, size: 22, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 1500, type: WidthType.DXA } }),
+                new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Total', bold: true, size: 22, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 1500, type: WidthType.DXA } }),
+              ]
+            }),
+            ...categoryRows
+          ]
+        }),
+
+        // Detail Error
+        new Paragraph({ spacing: { before: 300, after: 100 }, children: [
+          new TextRun({ text: 'DETAIL ERROR DAN PERBAIKAN', bold: true, size: 26, color: '6366F1', font: 'Calibri' })
+        ]}),
+        ...(data.errors.length === 0 ? [new Paragraph({ children: [new TextRun({ text: 'Tidak ada error ditemukan. Selamat! 🎉', size: 22, color: '10B981', font: 'Calibri' })] })] : [
+          new Table({
+            width: { size: 100, type: WidthType.PERCENTAGE },
+            rows: [
+              new TableRow({
+                children: [
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'No', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 500, type: WidthType.DXA } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Hal.', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 700, type: WidthType.DXA } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Jenis', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })] })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 2000, type: WidthType.DXA } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Severity', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })], alignment: AlignmentType.CENTER })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 900, type: WidthType.DXA } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Konteks', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })] })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 3000, type: WidthType.DXA } }),
+                  new TableCell({ children: [new Paragraph({ children: [new TextRun({ text: 'Perbaikan', bold: true, size: 20, color: 'FFFFFF', font: 'Calibri' })] })], shading: { type: ShadingType.CLEAR, fill: '6366F1' }, width: { size: 3500, type: WidthType.DXA } }),
+                ]
+              }),
+              ...errorRows
+            ]
+          })
+        ]),
+
+        // Footer
+        new Paragraph({ spacing: { before: 400 }, border: { top: { style: BorderStyle.SINGLE, size: 6, color: '6366F1' } }, children: [] }),
+        new Paragraph({ alignment: AlignmentType.CENTER, spacing: { before: 100 }, children: [
+          new TextRun({ text: 'Dokumen ini dihasilkan oleh Aplikasi Analisis Laporan — BINGPRO', size: 18, color: '888888', italics: true, font: 'Calibri' })
+        ]}),
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [
+          new TextRun({ text: 'Politeknik Pertanian Negeri Payakumbuh', size: 18, color: '888888', italics: true, font: 'Calibri' })
+        ]}),
+      ]
+    }]
+  });
+
+  // Generate and download
+  const blob = await Packer.toBlob(doc);
+  const fileName = `Analisis_${(data.student_name || 'Laporan').replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 10)}.docx`;
+  saveAs(blob, fileName);
+
+  // Feedback
+  const btn = event.target.closest('.btn');
+  const originalText = btn.innerHTML;
+  btn.innerHTML = '✅ Downloaded!';
+  btn.style.background = 'var(--success)';
+  btn.style.color = 'white';
+  setTimeout(() => { btn.innerHTML = originalText; btn.style.background = ''; btn.style.color = ''; }, 2000);
 }
 </script>
 </body>
