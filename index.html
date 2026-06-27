@@ -140,6 +140,55 @@ body { font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-ser
 ::-webkit-scrollbar-track { background:transparent; }
 ::-webkit-scrollbar-thumb { background:var(--border); border-radius:4px; }
 @media print { body{background:white} .upload-section,.loading-card,.action-buttons,.history-section,.footer{display:none!important} .result-section{display:block!important} .app{max-width:100%} }
+/* ===== AI Analysis Styles ===== */
+.ai-section { display:none; padding:0 16px 16px; }
+.ai-section.show { display:block; }
+.ai-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--border); margin-bottom:12px; }
+.ai-header { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+.ai-header h4 { font-size:14px; font-weight:600; color:var(--text); }
+.ai-score-ring { width:100px; height:100px; margin:0 auto 16px; position:relative; }
+.ai-score-ring svg { transform:rotate(-90deg); }
+.ai-score-ring .ring-bg { fill:none; stroke:var(--border); stroke-width:8; }
+.ai-score-ring .ring-fill { fill:none; stroke:var(--primary); stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 1s ease; }
+.ai-score-ring .ring-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:24px; font-weight:800; color:var(--primary); }
+.ai-score-label { text-align:center; font-size:12px; color:var(--text-secondary); margin-bottom:16px; }
+.ai-breakdown { display:flex; flex-direction:column; gap:10px; margin-bottom:16px; }
+.ai-breakdown-item { display:flex; align-items:center; gap:10px; }
+.ai-breakdown-item .label { font-size:12px; font-weight:500; color:var(--text); min-width:120px; }
+.ai-breakdown-item .bar-bg { flex:1; height:8px; background:var(--border); border-radius:4px; overflow:hidden; }
+.ai-breakdown-item .bar-fill { height:100%; border-radius:4px; transition:width 0.8s ease; }
+.ai-breakdown-item .val { font-size:12px; font-weight:700; min-width:32px; text-align:right; }
+.ai-issues { display:flex; flex-direction:column; gap:8px; }
+.ai-issue { padding:12px; border-radius:var(--radius-sm); border-left:4px solid var(--danger); background:#fef2f2; }
+.ai-issue.warning { border-left-color:var(--warning); background:#fffbeb; }
+.ai-issue .issue-title { font-size:13px; font-weight:700; color:var(--text); margin-bottom:4px; }
+.ai-issue .issue-desc { font-size:12px; color:var(--text-secondary); line-height:1.4; }
+.ai-strengths { display:flex; flex-direction:column; gap:6px; }
+.ai-strength { padding:10px 12px; border-radius:var(--radius-sm); background:#f0fdf4; border-left:4px solid var(--success); font-size:12px; color:var(--text); }
+.ai-priority { display:flex; flex-direction:column; gap:6px; }
+.ai-priority-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--bg); border-radius:var(--radius-sm); }
+.ai-priority-item .prio-num { width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:white; flex-shrink:0; }
+.ai-priority-item .prio-text { font-size:12px; color:var(--text); }
+/* Saran Revisi */
+.revisi-section { display:none; padding:0 16px 16px; }
+.revisi-section.show { display:block; }
+.revisi-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--border); margin-bottom:12px; }
+.revisi-header { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+.revisi-header h4 { font-size:14px; font-weight:600; color:var(--text); }
+.revisi-group { margin-bottom:16px; }
+.revisi-group-title { font-size:13px; font-weight:700; color:var(--primary); margin-bottom:8px; padding-bottom:4px; border-bottom:1px solid var(--border); }
+.revisi-item { padding:14px; border-radius:var(--radius-sm); margin-bottom:8px; background:var(--bg); border-left:4px solid var(--primary); }
+.revisi-item .r-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-muted); margin-bottom:4px; }
+.revisi-item .r-problem { font-size:13px; font-weight:600; color:var(--danger); margin-bottom:6px; }
+.revisi-item .r-why { font-size:12px; color:var(--text-secondary); margin-bottom:6px; line-height:1.4; }
+.revisi-item .r-quote { font-size:11px; font-family:'SF Mono','Fira Code',monospace; background:rgba(0,0,0,0.05); padding:6px 10px; border-radius:6px; margin-bottom:8px; color:var(--text-secondary); line-height:1.4; }
+.revisi-item .r-fix { font-size:12px; color:var(--success); font-weight:600; }
+.revisi-item .r-fix::before { content:'💡 '; }
+.revisi-tabs { display:flex; gap:6px; margin-bottom:12px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.revisi-tab { padding:6px 12px; border-radius:20px; border:1px solid var(--border); background:var(--card); font-size:11px; font-weight:600; color:var(--text-secondary); cursor:pointer; white-space:nowrap; }
+.revisi-tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+.btn-ai { background:linear-gradient(135deg,#8b5cf6 0%,#6366f1 100%); color:white; box-shadow:0 4px 12px rgba(139,92,246,0.4); }
+.btn-revisi { background:linear-gradient(135deg,#10b981 0%,#059669 100%); color:white; box-shadow:0 4px 12px rgba(16,185,129,0.4); }
 
 /* Logic Analysis Section */
 .logic-section { display:none; padding:0 16px 16px; }
@@ -240,8 +289,30 @@ body { font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-ser
   <div class="action-buttons" id="actionButtons" style="display:none;">
     <button class="btn btn-primary" onclick="saveResult()">💾 Simpan</button>
     <button class="btn btn-outline" onclick="runLogicAnalysis()">🧠 Logika</button>
+    <button class="btn btn-ai" onclick="runAIAnalysis()">🤖 Analisis AI</button>
+  </div>
+  <div class="action-buttons" id="actionButtons2" style="display:none;">
+    <button class="btn btn-revisi" onclick="runSaranRevisi()">📝 Saran Revisi</button>
     <button class="btn btn-outline" onclick="exportDOC()">📄 Export DOC</button>
     <button class="btn btn-outline" onclick="window.print()">📸 Screenshot</button>
+  </div>
+
+  <!-- AI Analysis Section -->
+  <div class="ai-section" id="aiSection">
+    <div class="ai-card" id="aiScoreCard"></div>
+    <div class="ai-card" id="aiBreakdownCard"></div>
+    <div class="ai-card" id="aiIssuesCard"></div>
+    <div class="ai-card" id="aiStrengthsCard"></div>
+    <div class="ai-card" id="aiPriorityCard"></div>
+  </div>
+
+  <!-- Saran Revisi Section -->
+  <div class="revisi-section" id="revisiSection">
+    <div class="revisi-card">
+      <div class="revisi-header"><h4>📝 Saran Revisi</h4></div>
+      <div class="revisi-tabs" id="revisiTabs"></div>
+      <div id="revisiContent"></div>
+    </div>
   </div>
 
   <div class="history-section">
@@ -598,6 +669,7 @@ async function analyzeFile(file) {
   document.getElementById('loadingCard').classList.add('show');
   document.getElementById('resultSection').classList.remove('show');
   document.getElementById('actionButtons').style.display = 'none';
+  document.getElementById('actionButtons2').style.display = 'none';
   
   try {
     const { pages, totalPages } = await extractTextFromPDF(file);
@@ -673,6 +745,7 @@ function displayResult(data) {
   renderErrors(data.errors);
   document.getElementById('resultSection').classList.add('show');
   document.getElementById('actionButtons').style.display = 'flex';
+  document.getElementById('actionButtons2').style.display = 'flex';
 }
 
 function renderErrors(errors) {
@@ -863,6 +936,284 @@ function showCat(cat) {
   el.innerHTML = items.map(i => '<div class="logic-item ' + i.type + '"><div class="label">' + (i.type === 'error' ? '❌ Error' : i.type === 'warning' ? '⚠️ Warning' : '✅ Baik') + '</div><div class="title">' + i.title + '</div><div class="desc">' + i.desc + '</div>' + (i.suggestion ? '<div class="suggestion">' + i.suggestion + '</div>' : '') + '</div>').join('');
 }
 
+// ===== Feature 1: Deteksi Inkonsistensi Tujuan-Metode-Hasil =====
+function detectInconsistency(text) {
+  const results = [];
+  const tujuan = extractSec(text, 'TUJUAN', 'HIPOTESIS') || extractSec(text, 'TUJUAN', 'TINJAUAN PUSTAKA') || extractSec(text, 'TUJUAN', 'METODE');
+  const metode = extractSec(text, 'METODE PELAKSANAAN', 'HASIL') || extractSec(text, 'METODE PENELITIAN', 'HASIL') || extractSec(text, 'METODE', 'HASIL');
+  const hasil = extractSec(text, 'HASIL PENELITIAN', 'PEMBAHASAN') || extractSec(text, 'HASIL', 'PEMBAHASAN') || extractSec(text, 'PEMBAHASAN', 'KESIMPULAN');
+  if (!tujuan) { results.push({ type:'warning', title:'Bagian TUJUAN tidak ditemukan', desc:'Tidak dapat memeriksa konsistensi karena bagian TUJUAN tidak terdeteksi.', suggestion:'Pastikan ada judul "TUJUAN" atau "TUJUAN PENELITIAN".' }); return results; }
+  // Extract keywords from tujuan (variables, methods, objects)
+  const tujuanLower = tujuan.toLowerCase();
+  const tujuanKeywords = [];
+  // Extract noun phrases: words after common verbs
+  const verbPatterns = [/mengetahui\s+(.+?)(?:\.|,|\n)/gi, /menganalisis\s+(.+?)(?:\.|,|\n)/gi, /mengevaluasi\s+(.+?)(?:\.|,|\n)/gi, /mengukur\s+(.+?)(?:\.|,|\n)/gi, /pengaruh\s+(.+?)(?:\s+terhadap|\s+pada)/gi, /hubungan\s+(.+?)(?:\s+dengan|\s+antara)/gi];
+  for (const vp of verbPatterns) { let m; while ((m = vp.exec(tujuan)) !== null) { tujuanKeywords.push(m[1].trim().toLowerCase()); } }
+  // Also grab key nouns
+  const keyNouns = tujuanLower.match(/\b(pertumbuhan|produksi|kualitas|hasil|dosis|kompos|pupuk|tanaman|variabel|parameter|produktivitas|mutu|kadar|analisis|uji|perlakuan|tinggi|berat|jumlah|volume|ph|unsur|harvest)\b/gi) || [];
+  const allTujuanKeys = [...new Set([...tujuanKeywords.map(k=>k.split(/\s+/)).flat(), ...keyNouns.map(k=>k.toLowerCase())])];
+  if (metode) {
+    const metodeLower = metode.toLowerCase();
+    const metodeNouns = metodeLower.match(/\b(pertumbuhan|produksi|kualitas|hasil|dosis|kompos|pupuk|tanaman|variabel|parameter|produktivitas|mutu|kadar|analisis|uji|perlakuan|tinggi|berat|jumlah|volume|ph|unsur|harvest)\b/gi) || [];
+    const metodeKeys = [...new Set(metodeNouns.map(k=>k.toLowerCase()))];
+    // Check if tujuan keywords appear in metode
+    const missingInMetode = allTujuanKeys.filter(k => k.length > 4 && !metodeLower.includes(k));
+    if (missingInMetode.length > 2 && allTujuanKeys.length > 3) {
+      results.push({ type:'error', title:'Inkonsistensi Tujuan ↔ Metode', desc:`Tujuan menyebut variabel/konsep yang tidak ditemukan di Metode: "${missingInMetode.slice(0,3).join('", "')}".`, suggestion:'Pastikan metode penelitian menjelaskan bagaimana variabel yang disebut di Tujuan akan diukur/diteliti.' });
+    } else {
+      results.push({ type:'success', title:'Tujuan ↔ Metode Konsisten', desc:'Variabel dan konsep di Tujuan terkait dengan Metode.', suggestion:'' });
+    }
+  }
+  if (hasil) {
+    const hasilLower = hasil.toLowerCase();
+    const missingInHasil = allTujuanKeys.filter(k => k.length > 4 && !hasilLower.includes(k));
+    if (missingInHasil.length > 2 && allTujuanKeys.length > 3) {
+      results.push({ type:'error', title:'Inkonsistensi Tujuan ↔ Hasil/Pembahasan', desc:`Tujuan membahas "${missingInHasil.slice(0,3).join('", "')}" tetapi tidak dibahas di Hasil/Pembahasan.`, suggestion:'Hasil dan Pembahasan harus membahas semua aspek yang disebutkan di Tujuan.' });
+    } else {
+      results.push({ type:'success', title:'Tujuan ↔ Hasil Konsisten', desc:'Topik yang disebut di Tujuan terdapat di Hasil/Pembahasan.', suggestion:'' });
+    }
+  }
+  return results;
+}
+// ===== Feature 2: Deteksi Bahasa Normatif/Tidak Ilmiah =====
+function detectNormativeLanguage(text) {
+  const results = [];
+  const normativePhrases = [
+    { pattern: /seharusnya/gi, label:'Bahasa Normatif', fix:'Ganti dengan: "Berdasarkan hasil penelitian, ..." atau "Temuan menunjukkan bahwa ..."' },
+    { pattern: /hendaknya/gi, label:'Bahasa Normatif', fix:'Hindari kata "hendaknya". Gunakan kalimat berbasis temuan.' },
+    { pattern: /perlu\s+dilakukan/gi, label:'Bahasa Normatif', fix:'Ganti: "Penelitian ini merekomendasikan..." atau hapus kalimat rekomendasi.' },
+    { pattern: /penting\s+bagi\s+pemerintah/gi, label:'Rekomendasi Kebijakan', fix:'Bagian ini terdengar seperti rekomendasi kebijakan, bukan temuan ilmiah. Pindahkan ke bagian Saran.' },
+    { pattern: /diharapkan\s+dapat/gi, label:'Bahasa Normatif', fix:'Ganti: "Hasil penelitian menunjukkan bahwa..." atau "Temuan mengindikasikan..."' },
+    { pattern: /sudah\s+sepatutnya/gi, label:'Bahasa Normatif', fix:'Gunakan bahasa objektif berbasis data.' },
+    { pattern: /sangat\s+baik/gi, label:'Subjektif Tanpa Bukti', fix:'Ganti dengan data kuantitatif: "Nilai rata-rata X sebesar Y, yang termasuk kategori baik."' },
+    { pattern: /sangat\s+bagus/gi, label:'Subjektif Tanpa Bukti', fix:'Gunakan data numerik sebagai bukti.' },
+    { pattern: /sangat\s+tinggi/gi, label:'Subjektif Tanpa Bukti', fix:'Sebutkan angka: "mencapai X%" atau "sebesar Y ton/ha."' },
+    { pattern: /sangat\s+rendah/gi, label:'Subjektif Tanpa Bukti', fix:'Sebutkan angka: "hanya sebesar X" atau "di bawah standar Y."' },
+    { pattern: /agar\s+lebih\s+baik/gi, label:'Bahasa Tidak Ilmiah', fix:'Gunakan: "Disarankan untuk meningkatkan aspek X melalui Y."' },
+    { pattern: /yang\s+baik\s+banget/gi, label:'Bahasa Kolokial', fix:'Hindari bahasa sehari-hari dalam tulisan ilmiah.' },
+    { pattern: /memang\s+sudah/gi, label:'Bahasa Kolokial', fix:'Gunakan: "telah" atau "sudah terbukti berdasarkan data."' },
+    { pattern: /kan\s*,/gi, label:'Bahasa Kolokial', fix:'Hindari kata "kan" dalam penulisan ilmiah.' },
+    { pattern: /dong/gi, label:'Bahasa Kolokial', fix:'Hindari bahasa sehari-hari dalam tulisan ilmiah.' },
+    { pattern: /sih/gi, label:'Bahasa Kolokial', fix:'Hindari kata "sih" dalam penulisan ilmiah.' },
+  ];
+  const lines = text.split('\n');
+  const babLabels = { 'BAB I': 'Latar Belakang', 'BAB II': 'Tinjauan Pustaka', 'BAB III': 'Metode', 'BAB IV': 'Hasil & Pembahasan', 'BAB V': 'Kesimpulan' };
+
+  for (const np of normativePhrases) {
+    const regex = new RegExp(np.pattern.source, np.pattern.flags);
+    for (let li = 0; li < lines.length; li++) {
+      const line = lines[li].trim();
+      if (!line) continue;
+      const match = regex.exec(line);
+      if (match) {
+        // Determine which BAB
+        let section = 'Umum';
+        for (let j = li; j >= 0; j--) {
+          const upper = lines[j].toUpperCase();
+          if (/BAB\s+I\b|PENDAHULUAN/.test(upper)) { section = 'BAB I'; break; }
+          if (/BAB\s+II\b|TINJAUAN\s+PUSTAKA/.test(upper)) { section = 'BAB II'; break; }
+          if (/BAB\s+III\b|METODE/.test(upper)) { section = 'BAB III'; break; }
+          if (/BAB\s+IV\b|HASIL|PEMBAHASAN/.test(upper)) { section = 'BAB IV'; break; }
+          if (/BAB\s+V\b|KESIMPULAN/.test(upper)) { section = 'BAB V'; break; }
+        }
+        // Skip Saran section (normative language is OK there)
+        if (/SARAN/i.test(section) || /SARAN/.test(lines.slice(Math.max(0,li-20), li+1).join(' ').toUpperCase())) continue;
+        results.push({ type:'warning', label:np.label, phrase:match[0], line:line.substring(0,120), fix:np.fix, section });
+        break; // one match per phrase type is enough to flag
+      }
+    }
+  }
+  return results;
+}
+// ===== Feature 3: Saran Revisi =====
+function generateSaranRevisi(allErrors, logicResults, normResults, inconsResults) {
+  const grouped = {};
+  const addRevisi = (bab, problem, why, quote, fix) => {
+    if (!grouped[bab]) grouped[bab] = [];
+    grouped[bab].push({ problem, why, quote, fix });
+  };
+  // From EYD errors
+  for (const e of allErrors) {
+    let bab = 'Umum';
+    // Guess BAB from page ranges (rough heuristic)
+    if (e.page <= 5) bab = 'BAB I — Pendahuluan';
+    else if (e.page <= 15) bab = 'BAB II — Tinjauan Pustaka';
+    else if (e.page <= 20) bab = 'BAB III — Metode';
+    else if (e.page <= 35) bab = 'BAB IV — Hasil & Pembahasan';
+    else bab = 'BAB V — Kesimpulan';
+    let why = '', example = '';
+    if (e.type === 'Duplikasi kata') { why = 'Kata yang ditulis dua kali mengurangi kualitas tulisan dan membingungkan pembaca.'; example = 'Salah: "... yang yang mempengaruhi ..."\nBenar: "... yang mempengaruhi ..."'; }
+    else if (e.type === 'Ejaan') { why = 'Ejaan yang tidak sesuai EYD mengurangi kredibilitas tulisan ilmiah.'; example = `Salah: "${e.fix.split('→')[0].trim()}"\nBenar: ${e.fix.split('→')[1] || e.fix}`; }
+    else if (e.type === 'Indentasi Paragraf') { why = 'Indentasi paragraf harus 5 spasi (1,27 cm) sesuai standar EYD untuk penulisan ilmiah.'; example = 'Atur indentasi paragraf di Word: Paragraph → Special → First Line → 1,27 cm'; }
+    else if (e.type.includes('Daftar Pustaka')) { why = 'Format Daftar Pustaka harus mengikuti standar APA agar referensi dapat dilacak pembaca.'; example = 'Benar: Smith, J. A. (2020). Judul Buku. Penerbit.'; }
+    else if (e.type.includes('Sitasi')) { why = 'Sitasi di teks harus sesuai dengan Daftar Pustaka untuk menghindari tuduhan plagiat.'; example = e.fix; }
+    else if (e.type === 'Nama Ilmiah') { why = 'Nama ilmiah harus ditulis dengan benar (genus kapital, species huruf kecil, dicetak miring).'; example = e.fix; }
+    else { why = 'Kesalahan ini mengurangi kualitas akademik tulisan.'; example = e.fix || '-'; }
+    const problem = `${e.type}: ${e.context ? e.context.substring(0,80) : '-'}`;
+    addRevisi(bab, problem, why, e.context || '-', example || e.fix || '-');
+  }
+  // From logic results
+  if (logicResults) {
+    const babMap = { 'Latar Belakang':'BAB I — Pendahuluan', 'Tujuan':'BAB I — Pendahuluan', 'Tinjauan Pustaka':'BAB II — Tinjauan Pustaka', 'Pembahasan':'BAB IV — Hasil & Pembahasan', 'Struktur':'Struktur Dokumen' };
+    for (const [cat, items] of Object.entries(logicResults.categories)) {
+      for (const item of items) {
+        if (item.type === 'success') continue;
+        addRevisi(babMap[cat] || cat, item.title, item.desc, '-', item.suggestion || '-');
+      }
+    }
+  }
+  // From normative language
+  if (normResults) {
+    const secMap = { 'BAB I':'BAB I — Pendahuluan', 'BAB II':'BAB II — Tinjauan Pustaka', 'BAB III':'BAB III — Metode', 'BAB IV':'BAB IV — Hasil & Pembahasan', 'BAB V':'BAB V — Kesimpulan' };
+    for (const n of normResults) {
+      addRevisi(secMap[n.section] || 'Umum', `Bahasa "${n.phrase}" tidak ilmiah (${n.label})`, `Kalimat normatif/subjektif tidak cocok untuk penelitian ilmiah.`, n.line, n.fix);
+    }
+  }
+  // From inconsistency
+  if (inconsResults) {
+    for (const inc of inconsResults) {
+      if (inc.type === 'success') continue;
+      addRevisi('Konsistensi', inc.title, inc.desc, '-', inc.suggestion);
+    }
+  }
+  return grouped;
+}
+function runSaranRevisi() {
+  if (!currentResult) { alert('Upload dan analisis PDF dulu'); return; }
+  const pages = currentResult._pages || [];
+  const fullText = pages.map(p => p.text).join('\n');
+  const lr = logicResults || analyzeWritingLogic(fullText, currentResult.errors);
+  const norm = detectNormativeLanguage(fullText);
+  const incons = detectInconsistency(fullText);
+  const grouped = generateSaranRevisi(currentResult.errors, lr, norm, incons);
+  displaySaranRevisi(grouped);
+  document.getElementById('revisiSection').classList.add('show');
+  document.getElementById('revisiSection').scrollIntoView({ behavior:'smooth' });
+}
+let revisiData = null;
+function displaySaranRevisi(grouped) {
+  revisiData = grouped;
+  const cats = Object.keys(grouped);
+  document.getElementById('revisiTabs').innerHTML = cats.map((c,i) => `<button class="revisi-tab ${i===0?'active':''}" onclick="switchRevisiTab('${c.replace(/'/g,"\\'")}',this)">${c} (${grouped[c].length})</button>`).join('');
+  if (cats.length > 0) showRevisiCat(cats[0]);
+}
+
+function switchRevisiTab(cat, btn) {
+  document.querySelectorAll('.revisi-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  showRevisiCat(cat);
+}
+
+function showRevisiCat(cat) {
+  const items = revisiData[cat] || [];
+  const el = document.getElementById('revisiContent');
+  if (items.length === 0) { el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Tidak ada saran revisi ✅</div>'; return; }
+  el.innerHTML = `<div class="revisi-group"><div class="revisi-group-title">${cat}</div>` + items.map(it => `
+    <div class="revisi-item">
+      <div class="r-label">⚠️ Yang Perlu Diperbaiki</div>
+      <div class="r-problem">${it.problem}</div>
+      <div class="r-why">❓ ${it.why}</div>
+      ${it.quote && it.quote !== '-' ? `<div class="r-quote">📝 "${it.quote.substring(0,150)}"</div>` : ''}
+      <div class="r-fix">${it.fix}</div>
+    </div>`).join('') + '</div>';
+}
+// ===== Feature 4: Analisis Komprehensif (Summary Report) =====
+function runAIAnalysis() {
+  if (!currentResult) { alert('Upload dan analisis PDF dulu'); return; }
+  const pages = currentResult._pages || [];
+  const fullText = pages.map(p => p.text).join('\n');
+  const lr = logicResults || analyzeWritingLogic(fullText, currentResult.errors);
+  const norm = detectNormativeLanguage(fullText);
+  const incons = detectInconsistency(fullText);
+  const allAI = { inconsistency: incons, normative: norm, logic: lr, eyd: currentResult };
+  displayAIResults(allAI, fullText);
+  document.getElementById('aiSection').classList.add('show');
+  document.getElementById('aiSection').scrollIntoView({ behavior:'smooth' });
+}
+
+function displayAIResults(ai, fullText) {
+  // Calculate scores
+  const eydScore = Math.round((ai.eyd.eyd_score / 25) * 100);
+  const logicScore = ai.logic.summary.total > 0 ? Math.round((ai.logic.summary.passed / ai.logic.summary.total) * 100) : 50;
+  const normDeduction = Math.min(20, ai.normative.length * 4);
+  const normScore = Math.max(0, 100 - normDeduction);
+  const inconsPassed = ai.inconsistency.filter(i => i.type === 'success').length;
+  const inconsTotal = ai.inconsistency.length || 1;
+  const inconsScore = Math.round((inconsPassed / inconsTotal) * 100);
+  const overall = Math.round((eydScore * 0.3 + logicScore * 0.3 + normScore * 0.2 + inconsScore * 0.2));
+
+  // Score card with ring
+  const circumference = 2 * Math.PI * 40;
+  const offset = circumference - (overall / 100) * circumference;
+  const ringColor = overall >= 75 ? 'var(--success)' : overall >= 50 ? 'var(--warning)' : 'var(--danger)';
+  document.getElementById('aiScoreCard').innerHTML = `
+    <div class="ai-header"><h4>🤖 Analisis Komprehensif AI</h4></div>
+    <div class="ai-score-ring">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle class="ring-bg" cx="50" cy="50" r="40"/>
+        <circle class="ring-fill" cx="50" cy="50" r="40" style="stroke:${ringColor};stroke-dasharray:${circumference};stroke-dashoffset:${offset}"/>
+      </svg>
+      <div class="ring-text" style="color:${ringColor}">${overall}</div>
+    </div>
+    <div class="ai-score-label">${overall >= 80 ? '✨ Kualitas Baik' : overall >= 60 ? '⚠️ Perlu Perbaikan' : '❌ Banyak Masalah'} — Skor keseluruhan dari 100</div>
+    <div style="text-align:center;font-size:11px;color:var(--text-muted)">EYD: ${eydScore}% · Logika: ${logicScore}% · Bahasa: ${normScore}% · Konsistensi: ${inconsScore}%</div>`;
+
+  // Breakdown
+  const bColor = v => v >= 75 ? 'var(--success)' : v >= 50 ? 'var(--warning)' : 'var(--danger)';
+  document.getElementById('aiBreakdownCard').innerHTML = `
+    <div class="ai-header"><h4>📊 Skor Per Bagian</h4></div>
+    <div class="ai-breakdown">
+      ${['EYD & Ejaan','Logika Penulisan','Bahasa Ilmiah','Konsistensi Tujuan-Metode-Hasil'].map((l,i) => {
+        const v = [eydScore, logicScore, normScore, inconsScore][i];
+        return `<div class="ai-breakdown-item"><span class="label">${l}</span><div class="bar-bg"><div class="bar-fill" style="width:${v}%;background:${bColor(v)}"></div></div><span class="val" style="color:${bColor(v)}">${v}</span></div>`;
+      }).join('')}
+    </div>`;
+
+  // Critical issues
+  const allIssues = [];
+  for (const e of ai.eyd.errors.filter(e=>e.severity==='error').slice(0,5)) allIssues.push({ title:e.type, desc:`${e.context||''} — ${e.fix||''}`, severity:'error' });
+  for (const n of ai.normative.slice(0,3)) allIssues.push({ title:`${n.label}: "${n.phrase}"`, desc:n.fix, severity:'warning' });
+  for (const inc of ai.inconsistency.filter(i=>i.type!=='success')) allIssues.push({ title:inc.title, desc:inc.desc, severity:inc.type });
+  const top5 = allIssues.slice(0, 5);
+  document.getElementById('aiIssuesCard').innerHTML = `
+    <div class="ai-header"><h4>🔥 Top ${top5.length} Masalah Kritis</h4></div>
+    <div class="ai-issues">
+      ${top5.length === 0 ? '<div style="text-align:center;color:var(--text-muted);padding:12px">Tidak ada masalah kritis 🎉</div>' :
+      top5.map((iss,i) => `<div class="ai-issue ${iss.severity==='warning'?'warning':''}"><div class="issue-title">${i+1}. ${iss.title}</div><div class="issue-desc">${iss.desc}</div></div>`).join('')}
+    </div>`;
+
+  // Strengths
+  const strengths = [];
+  if (ai.eyd.eyd_score >= 20) strengths.push('EYD dan ejaan sudah cukup baik');
+  if (ai.inconsistency.some(i=>i.type==='success')) strengths.push('Konsistensi antara Tujuan, Metode, dan Hasil sudah terjaga');
+  if (ai.normative.length <= 2) strengths.push('Bahasa yang digunakan sudah cukup ilmiah dan objektif');
+  if (ai.logic.summary.passed > 0) strengths.push(`${ai.logic.summary.passed} aspek logika penulisan sudah sesuai standar`);
+  if (fullText.includes('DAFTAR PUSTAKA')) strengths.push('Daftar Pustaka tersedia');
+  if (strengths.length === 0) strengths.push('Masih banyak yang perlu diperbaiki — fokus pada revisi prioritas di bawah');
+  document.getElementById('aiStrengthsCard').innerHTML = `
+    <div class="ai-header"><h4>✅ Kelebihan</h4></div>
+    <div class="ai-strengths">
+      ${strengths.map(s => `<div class="ai-strength">✔️ ${s}</div>`).join('')}
+    </div>`;
+
+  // Priority revision
+  const priorities = [];
+  const prioColors = ['var(--danger)','var(--warning)','var(--primary)','var(--text-secondary)','var(--text-muted)'];
+  for (const e of ai.eyd.errors.filter(e=>e.severity==='error')) priorities.push(e.fix || e.type);
+  for (const inc of ai.inconsistency.filter(i=>i.type==='error')) priorities.push(inc.suggestion || inc.title);
+  for (const n of ai.normative) priorities.push(n.fix);
+  for (const l of ai.logic.summary.errors > 0 ? Object.values(ai.logic.categories).flat().filter(i=>i.type==='error') : []) priorities.push(l.suggestion || l.title);
+  const topPrio = [...new Set(priorities)].slice(0, 5);
+  document.getElementById('aiPriorityCard').innerHTML = `
+    <div class="ai-header"><h4>🎯 Prioritas Revisi</h4></div>
+    <div class="ai-priority">
+      ${topPrio.length === 0 ? '<div style="text-align:center;color:var(--text-muted);padding:12px">Tidak ada revisi prioritas</div>' :
+      topPrio.map((p,i) => `<div class="ai-priority-item"><div class="prio-num" style="background:${prioColors[i]||prioColors[4]}">${i+1}</div><div class="prio-text">${p}</div></div>`).join('')}
+    </div>`;
+
+  // Store for DOC export
+  window._aiExportData = { overall, eydScore, logicScore, normScore, inconsScore, top5, strengths, topPrio, normResults: ai.normative, inconsResults: ai.inconsistency };
+}
 // ===== Export DOC (HTML-based, no external libs) =====
 function exportDOC() {
   if (!currentResult) { alert('Tidak ada hasil untuk di-export'); return; }
@@ -955,6 +1306,20 @@ ${data.errors.length === 0 ? '<p style="color:#10B981">Tidak ada error ditemukan
 <tr><th>No</th><th>Hal.</th><th>Jenis</th><th>Severity</th><th>Konteks</th><th>Perbaikan</th></tr>
 ${errRows}
 </table>`}
+
+<h3>ANALISIS AI KOMPREHENSIF</h3>
+${window._aiExportData ? `
+<table class="info">
+<tr><td>Skor Keseluruhan</td><td>: <span style="color:${window._aiExportData.overall>=75?'#10B981':window._aiExportData.overall>=50?'#F59E0B':'#EF4444'};font-weight:bold;font-size:16px">${window._aiExportData.overall}/100</span></td></tr>
+<tr><td>EYD & Ejaan</td><td>: ${window._aiExportData.eydScore}%</td></tr>
+<tr><td>Logika Penulisan</td><td>: ${window._aiExportData.logicScore}%</td></tr>
+<tr><td>Bahasa Ilmiah</td><td>: ${window._aiExportData.normScore}%</td></tr>
+<tr><td>Konsistensi</td><td>: ${window._aiExportData.inconsScore}%</td></tr>
+</table>
+${window._aiExportData.top5.length > 0 ? `<h3 style="color:#CC0000">TOP MASALAH KRITIS</h3><table><tr><th>No</th><th>Masalah</th><th>Deskripsi</th></tr>${window._aiExportData.top5.map((t,i)=>`<tr><td style="text-align:center">${i+1}</td><td style="font-weight:bold">${t.title}</td><td>${t.desc}</td></tr>`).join('')}</table>` : ''}
+${window._aiExportData.strengths.length > 0 ? `<h3 style="color:#10B981">KELEBIHAN</h3><ul>${window._aiExportData.strengths.map(s=>`<li style="font-size:11px;margin-bottom:4px">${s}</li>`).join('')}</ul>` : ''}
+${window._aiExportData.topPrio.length > 0 ? `<h3 style="color:#6366f1">PRIORITAS REVISI</h3><table><tr><th>No</th><th>Prioritas</th></tr>${window._aiExportData.topPrio.map((p,i)=>`<tr><td style="text-align:center">${i+1}</td><td>${p}</td></tr>`).join('')}</table>` : ''}
+` : '<p style="color:#888">Jalankan Analisis AI terlebih dahulu untuk menambahkan laporan komprehensif ke dokumen ini.</p>'}
 
 <div class="footer">
 Dokumen ini dihasilkan oleh Aplikasi Analisis Laporan — BINGPRO<br>
