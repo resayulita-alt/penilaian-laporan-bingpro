@@ -212,6 +212,37 @@ body { font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-ser
 .logic-stat .num { font-size:24px; font-weight:800; line-height:1; margin-bottom:4px; }
 .logic-stat .lbl { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; }
 
+/* ===== Statistik Data Analysis Styles ===== */
+.statistik-section { display:none; padding:0 16px 16px; }
+.statistik-section.show { display:block; }
+.statistik-card { background:var(--card); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); border:1px solid var(--border); margin-bottom:12px; }
+.statistik-header { display:flex; align-items:center; gap:8px; margin-bottom:16px; }
+.statistik-header h4 { font-size:14px; font-weight:600; color:var(--text); }
+.statistik-summary { display:grid; grid-template-columns:repeat(2,1fr); gap:10px; margin-bottom:16px; }
+.statistik-stat { background:var(--bg); border-radius:var(--radius-sm); padding:14px; text-align:center; }
+.statistik-stat .num { font-size:24px; font-weight:800; line-height:1; margin-bottom:4px; }
+.statistik-stat .lbl { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; }
+.statistik-tabs { display:flex; gap:6px; margin-bottom:16px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+.statistik-tab { padding:8px 14px; border-radius:20px; border:1px solid var(--border); background:var(--card); font-size:11px; font-weight:600; color:var(--text-secondary); cursor:pointer; white-space:nowrap; }
+.statistik-tab.active { background:var(--primary); color:white; border-color:var(--primary); }
+.statistik-item { padding:14px; border-radius:var(--radius-sm); margin-bottom:10px; border-left:4px solid var(--danger); background:#fef2f2; }
+.statistik-item.warning { border-left-color:var(--warning); background:#fffbeb; }
+.statistik-item.error { border-left-color:var(--danger); background:#fef2f2; }
+.statistik-item.success { border-left-color:var(--success); background:#f0fdf4; }
+.statistik-item.info { border-left-color:#3b82f6; background:#eff6ff; }
+.statistik-item .s-label { font-size:10px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; font-weight:600; margin-bottom:4px; }
+.statistik-item .s-title { font-size:13px; font-weight:700; margin-bottom:6px; color:var(--text); }
+.statistik-item .s-desc { font-size:12px; color:var(--text-secondary); line-height:1.5; }
+.statistik-item .s-detail { font-size:11px; font-family:'SF Mono','Fira Code',monospace; background:rgba(0,0,0,0.04); padding:6px 10px; border-radius:6px; margin-top:8px; color:var(--text-secondary); line-height:1.4; }
+.statistik-item .s-fix { font-size:12px; color:var(--success); font-weight:600; margin-top:8px; }
+.statistik-item .s-fix::before { content:'💡 '; }
+.statistik-score-ring { width:100px; height:100px; margin:0 auto 16px; position:relative; }
+.statistik-score-ring svg { transform:rotate(-90deg); }
+.statistik-score-ring .ring-bg { fill:none; stroke:var(--border); stroke-width:8; }
+.statistik-score-ring .ring-fill { fill:none; stroke-width:8; stroke-linecap:round; transition:stroke-dashoffset 1s ease; }
+.statistik-score-ring .ring-text { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-size:24px; font-weight:800; }
+.btn-statistik { background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%); color:white; box-shadow:0 4px 12px rgba(245,158,11,0.4); }
+
 </style>
 </head>
 <body>
@@ -293,7 +324,10 @@ body { font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-ser
   </div>
   <div class="action-buttons" id="actionButtons2" style="display:none;">
     <button class="btn btn-revisi" onclick="runSaranRevisi()">📝 Saran Revisi</button>
+    <button class="btn btn-statistik" onclick="runStatistikAnalysis()">📊 Analisis Data</button>
     <button class="btn btn-outline" onclick="exportDOC()">📄 Export DOC</button>
+  </div>
+  <div class="action-buttons" id="actionButtons3" style="display:none;">
     <button class="btn btn-outline" onclick="window.print()">📸 Screenshot</button>
   </div>
 
@@ -313,6 +347,13 @@ body { font-family:'Plus Jakarta Sans',-apple-system,BlinkMacSystemFont,sans-ser
       <div class="revisi-tabs" id="revisiTabs"></div>
       <div id="revisiContent"></div>
     </div>
+  </div>
+
+  <!-- Statistik Data Section -->
+  <div class="statistik-section" id="statistikSection">
+    <div class="statistik-card" id="statistikScoreCard"></div>
+    <div class="statistik-card" id="statistikSummaryCard"></div>
+    <div class="statistik-card" id="statistikDetailCard"></div>
   </div>
 
   <div class="history-section">
@@ -746,6 +787,7 @@ function displayResult(data) {
   document.getElementById('resultSection').classList.add('show');
   document.getElementById('actionButtons').style.display = 'flex';
   document.getElementById('actionButtons2').style.display = 'flex';
+  document.getElementById('actionButtons3').style.display = 'flex';
 }
 
 function renderErrors(errors) {
@@ -1321,6 +1363,20 @@ ${window._aiExportData.strengths.length > 0 ? `<h3 style="color:#10B981">KELEBIH
 ${window._aiExportData.topPrio.length > 0 ? `<h3 style="color:#6366f1">PRIORITAS REVISI</h3><table><tr><th>No</th><th>Prioritas</th></tr>${window._aiExportData.topPrio.map((p,i)=>`<tr><td style="text-align:center">${i+1}</td><td>${p}</td></tr>`).join('')}</table>` : ''}
 ` : '<p style="color:#888">Jalankan Analisis AI terlebih dahulu untuk menambahkan laporan komprehensif ke dokumen ini.</p>'}
 
+<h3>ANALISIS DATA STATISTIK</h3>
+${window._statistikExportData ? `
+<table class="info">
+<tr><td>Tabel Ditemukan</td><td>: ${window._statistikExportData.summary.tablesFound}</td></tr>
+<tr><td>Nilai Dianalisis</td><td>: ${window._statistikExportData.summary.valuesAnalyzed}</td></tr>
+<tr><td>Skor Kualitas Data</td><td>: <span style="color:${window._statistikExportData.score>=75?'#10B981':window._statistikExportData.score>=50?'#F59E0B':'#EF4444'};font-weight:bold;font-size:14px">${window._statistikExportData.score}/100</span></td></tr>
+<tr><td>Issue Copy-Paste</td><td>: <span style="color:#CC0000">${window._statistikExportData.summary.copyPasteIssues}</span></td></tr>
+<tr><td>Issue Verifikasi</td><td>: <span style="color:#CC8800">${window._statistikExportData.summary.verificationIssues}</span></td></tr>
+<tr><td>Issue Inkonsistensi</td><td>: <span style="color:#CC8800">${window._statistikExportData.summary.inconsistencyIssues}</span></td></tr>
+<tr><td>Issue Anomali</td><td>: <span style="color:#CC0000">${window._statistikExportData.summary.anomalyIssues}</span></td></tr>
+</table>
+${window._statistikExportData.allFindings.length > 0 ? `<table><tr><th>No</th><th>Kategori</th><th>Judul</th><th>Severity</th><th>Detail</th><th>Perbaikan</th></tr>${window._statistikExportData.allFindings.map((f,i)=>`<tr><td style="text-align:center">${i+1}</td><td>${f.category}</td><td style="font-weight:bold">${f.title}</td><td style="color:${f.type==='error'?'#CC0000':f.type==='warning'?'#CC8800':'#3b82f6'}">${f.type==='error'?'Error':f.type==='warning'?'Warning':'Info'}</td><td style="font-size:11px">${f.desc}</td><td style="font-size:11px">${f.fix||'-'}</td></tr>`).join('')}</table>` : '<p style="color:#10B981">Tidak ada masalah data statistik ditemukan.</p>'}
+` : '<p style="color:#888">Jalankan Analisis Data Statistik terlebih dahulu untuk menambahkan laporan ini ke dokumen.</p>'}
+
 <div class="footer">
 Dokumen ini dihasilkan oleh Aplikasi Analisis Laporan — BINGPRO<br>
 Politeknik Pertanian Negeri Payakumbuh
@@ -1345,6 +1401,700 @@ Politeknik Pertanian Negeri Payakumbuh
   btn.style.background = 'var(--success)';
   btn.style.color = 'white';
   setTimeout(() => { btn.innerHTML = originalText; btn.style.background = ''; btn.style.color = ''; }, 2000);
+}
+
+// ===== Feature 5: Analisis Data Statistik =====
+let statistikResults = null;
+
+function runStatistikAnalysis() {
+  if (!currentResult) { alert('Upload dan analisis PDF dulu'); return; }
+  const pages = currentResult._pages || [];
+  const fullText = pages.map(p => p.text).join('\n');
+  statistikResults = analyzeStatistikData(fullText);
+  displayStatistikResults(statistikResults);
+  document.getElementById('statistikSection').classList.add('show');
+  document.getElementById('statistikSection').scrollIntoView({ behavior: 'smooth' });
+}
+
+function analyzeStatistikData(text) {
+  const findings = {
+    copyPaste: [],
+    verification: [],
+    inconsistency: [],
+    anomalies: []
+  };
+  const tables = detectTables(text);
+  const totalValues = tables.reduce((sum, t) => sum + t.rows.reduce((s, r) => s + r.values.length, 0), 0);
+
+  // 1. Copy-Paste Error Detection
+  for (const table of tables) {
+    const cpResults = detectCopyPasteErrors(table);
+    findings.copyPaste.push(...cpResults);
+  }
+
+  // 2. Statistical Verification
+  const verResults = verifyStatisticalClaims(text, tables);
+  findings.verification.push(...verResults);
+
+  // 3. Table vs Text Inconsistency
+  const incResults = detectTableTextInconsistency(text, tables);
+  findings.inconsistency.push(...incResults);
+
+  // 4. Data Anomaly Detection
+  for (const table of tables) {
+    const anomResults = detectDataAnomalies(table);
+    findings.anomalies.push(...anomResults);
+  }
+
+  // Calculate data quality score
+  const totalIssues = findings.copyPaste.length + findings.verification.length +
+                      findings.inconsistency.length + findings.anomalies.length;
+  const criticalIssues = findings.copyPaste.filter(f => f.type === 'error').length +
+                         findings.verification.filter(f => f.type === 'error').length +
+                         findings.anomalies.filter(f => f.type === 'error').length;
+  let score = 100;
+  score -= criticalIssues * 15;
+  score -= (findings.copyPaste.filter(f => f.type === 'warning').length +
+            findings.verification.filter(f => f.type === 'warning').length +
+            findings.inconsistency.filter(f => f.type === 'warning').length +
+            findings.anomalies.filter(f => f.type === 'warning').length) * 5;
+  score -= (findings.copyPaste.filter(f => f.type === 'info').length +
+            findings.anomalies.filter(f => f.type === 'info').length) * 2;
+  score = Math.max(0, Math.min(100, score));
+
+  return {
+    tables, totalValues, findings, totalIssues, score,
+    summary: {
+      tablesFound: tables.length,
+      valuesAnalyzed: totalValues,
+      copyPasteIssues: findings.copyPaste.length,
+      verificationIssues: findings.verification.length,
+      inconsistencyIssues: findings.inconsistency.length,
+      anomalyIssues: findings.anomalies.length
+    }
+  };
+}
+
+// Detect tables from plain text
+function detectTables(text) {
+  const tables = [];
+  const lines = text.split('\n');
+  let i = 0;
+
+  while (i < lines.length) {
+    const line = lines[i].trim();
+
+    // Look for table headers: "Tabel X" or "Table X" or "TABEL X"
+    const tableHeaderMatch = line.match(/^(?:Tabel|Table|TABEL)\s+(\d+[\.\d]*)\s*[.:–-]?\s*(.*)/i);
+    if (tableHeaderMatch) {
+      const tableNum = tableHeaderMatch[1];
+      const tableTitle = tableHeaderMatch[2] || '';
+      const tableData = { number: tableNum, title: tableTitle.trim(), headerLine: i, headers: [], rows: [], rawLines: [] };
+
+      // Look ahead for table data
+      let j = i + 1;
+      // Skip empty lines and find header row
+      while (j < lines.length && j < i + 20) {
+        const nextLine = lines[j].trim();
+        if (!nextLine) { j++; continue; }
+
+        // Check if this line has multiple numbers (data row)
+        const numbers = extractNumbersFromLine(nextLine);
+        const hasNumbers = numbers.length >= 2;
+        const hasLabel = /^[A-Za-z][A-Za-z0-9\s\.\-\/]+/.test(nextLine);
+
+        if (hasNumbers && hasLabel) {
+          // This could be a header or data row
+          // Heuristic: if numbers look like column headers (small integers) it's a header
+          if (tableData.rows.length === 0 && numbers.every(n => n === Math.floor(n) && n < 100)) {
+            tableData.headers = nextLine.split(/\s{2,}|\t/).map(s => s.trim()).filter(Boolean);
+          }
+          // Parse as data row
+          const parsed = parseTableRow(nextLine);
+          if (parsed) {
+            tableData.rows.push(parsed);
+            tableData.rawLines.push(j);
+          }
+        } else if (nextLine.match(/^[A-Za-z]/) && !hasNumbers && tableData.rows.length > 0) {
+          // Non-numeric line after data rows - end of table
+          break;
+        } else if (!nextLine && tableData.rows.length > 0) {
+          // Empty line after data - might be end
+          // Check if next non-empty line is also table data
+          let k = j + 1;
+          while (k < lines.length && !lines[k].trim()) k++;
+          if (k < lines.length) {
+            const nextNums = extractNumbersFromLine(lines[k].trim());
+            if (nextNums.length < 2) break;
+          }
+        }
+
+        j++;
+      }
+
+      if (tableData.rows.length >= 2) {
+        tables.push(tableData);
+      }
+      i = j;
+      continue;
+    }
+
+    // Also detect tables without "Tabel" header: lines with 3+ numbers and a label
+    const numbers = extractNumbersFromLine(line);
+    if (numbers.length >= 3 && /^[A-Za-z]/.test(line)) {
+      // Potential table start - collect consecutive similar lines
+      const tableData = { number: String(tables.length + 1), title: '', headerLine: i, headers: [], rows: [], rawLines: [] };
+      let j = i;
+      while (j < lines.length && j < i + 30) {
+        const currLine = lines[j].trim();
+        if (!currLine) { j++; continue; }
+        const currNums = extractNumbersFromLine(currLine);
+        if (currNums.length >= 2 && /^[A-Za-z]/.test(currLine)) {
+          const parsed = parseTableRow(currLine);
+          if (parsed) {
+            tableData.rows.push(parsed);
+            tableData.rawLines.push(j);
+          }
+          j++;
+        } else {
+          break;
+        }
+      }
+      if (tableData.rows.length >= 3) {
+        tables.push(tableData);
+      }
+      i = j;
+      continue;
+    }
+
+    i++;
+  }
+
+  return tables;
+}
+
+function extractNumbersFromLine(line) {
+  const nums = [];
+  const regex = /(?<![a-zA-Z])(\d+[.,]?\d*)/g;
+  let m;
+  while ((m = regex.exec(line)) !== null) {
+    const val = parseFloat(m[1].replace(',', '.'));
+    if (!isNaN(val)) nums.push(val);
+  }
+  return nums;
+}
+
+function parseTableRow(line) {
+  // Try to split by multiple spaces or tabs first
+  let parts = line.split(/\s{2,}|\t/).map(s => s.trim()).filter(Boolean);
+  if (parts.length < 2) {
+    // Fallback: split by single spaces but keep first part as label
+    parts = line.split(/\s+/);
+  }
+  if (parts.length < 2) return null;
+
+  const label = parts[0];
+  const values = [];
+  for (let i = 1; i < parts.length; i++) {
+    const val = parseFloat(parts[i].replace(',', '.'));
+    if (!isNaN(val)) values.push(val);
+  }
+  if (values.length === 0) return null;
+  return { label, values, raw: line };
+}
+
+// 1. Copy-Paste Error Detection
+function detectCopyPasteErrors(table) {
+  const results = [];
+  const rows = table.rows;
+  const tableRef = table.title ? `Tabel ${table.number} (${table.title})` : `Tabel ${table.number}`;
+
+  for (let i = 0; i < rows.length; i++) {
+    for (let j = i + 1; j < rows.length; j++) {
+      const r1 = rows[i];
+      const r2 = rows[j];
+
+      // Check for exact match
+      if (r1.values.length === r2.values.length &&
+          r1.values.every((v, idx) => v === r2.values[idx])) {
+        results.push({
+          type: 'error',
+          title: `Copy-Paste: ${r1.label} = ${r2.label}`,
+          desc: `Baris "${r1.label}" dan "${r2.label}" memiliki data IDENTIK: [${r1.values.join(', ')}]. Kemungkinan besar copy-paste error.`,
+          detail: `${r1.label}: ${r1.raw}\n${r2.label}: ${r2.raw}`,
+          fix: `Periksa kembali data ${r2.label}. Data harus berbeda dari ${r1.label}.`,
+          table: tableRef
+        });
+      }
+      // Check for suspiciously similar values (differ by 0.1-0.2)
+      else if (r1.values.length === r2.values.length) {
+        const diffs = r1.values.map((v, idx) => Math.abs(v - r2.values[idx]));
+        const allSimilar = diffs.every(d => d > 0 && d <= 0.5);
+        const avgDiff = diffs.reduce((a, b) => a + b, 0) / diffs.length;
+        if (allSimilar && avgDiff < 0.3) {
+          results.push({
+            type: 'warning',
+            title: `Pola Mencurigakan: ${r1.label} ≈ ${r2.label}`,
+            desc: `Baris "${r1.label}" dan "${r2.label}" sangat mirip (selisih rata-rata ${avgDiff.toFixed(2)}). Mungkin copy-paste dengan sedikit edit.`,
+            detail: `${r1.label}: [${r1.values.join(', ')}]\n${r2.label}: [${r2.values.join(', ')}]\nSelisih: [${diffs.map(d => d.toFixed(2)).join(', ')}]`,
+            fix: `Verifikasi data ${r2.label} — apakah benar-benar berbeda dari ${r1.label}?`,
+            table: tableRef
+          });
+        }
+      }
+    }
+  }
+
+  // Check if all rows have identical values
+  if (rows.length >= 3) {
+    const allSame = rows.every(r =>
+      r.values.length === rows[0].values.length &&
+      r.values.every((v, idx) => v === rows[0].values[idx])
+    );
+    if (allSame) {
+      results.push({
+        type: 'error',
+        title: `Semua Baris Identik`,
+        desc: `Semua ${rows.length} baris di ${tableRef} memiliki data yang SAMA. Ini hampir pasti copy-paste error.`,
+        detail: rows.map(r => `${r.label}: [${r.values.join(', ')}]`).join('\n'),
+        fix: `Masukkan data yang benar untuk setiap baris/perlakuan.`,
+        table: tableRef
+      });
+    }
+  }
+
+  return results;
+}
+
+// 2. Statistical Verification
+function verifyStatisticalClaims(text, tables) {
+  const results = [];
+
+  // Find claimed means: "rata-rata X = Y" or "mean X = Y" or "X rata-rata Y"
+  const meanPatterns = [
+    /rata[\s-]*rata\s+(?:dari\s+)?(.+?)\s+(?:adalah|=|sebesar|:)\s*(\d+[.,]?\d*)/gi,
+    /(?:mean|rerata)\s+(.+?)\s+(?:adalah|=|sebesar|:)\s*(\d+[.,]?\d*)/gi,
+    /(.+?)\s+rata[\s-]*rata(?:nya)?\s+(?:adalah|=|sebesar|:)\s*(\d+[.,]?\d*)/gi,
+    /rata[\s-]*rata\s+(\d+[.,]?\d*)/gi
+  ];
+
+  for (const pattern of meanPatterns) {
+    let m;
+    while ((m = pattern.exec(text)) !== null) {
+      const claimedMean = parseFloat(m[m.length - 1].replace(',', '.'));
+      const context = m[1] ? m[1].trim().substring(0, 50) : '';
+
+      // Try to find matching data in tables and verify
+      for (const table of tables) {
+        for (const row of table.rows) {
+          if (row.values.length > 0) {
+            const actualMean = row.values.reduce((a, b) => a + b, 0) / row.values.length;
+            if (Math.abs(actualMean - claimedMean) < 0.01 && Math.abs(actualMean - claimedMean) > 0.001) {
+              // Very close match to a row mean - this might be referencing it
+            }
+          }
+        }
+
+        // Check column means
+        if (table.rows.length >= 2) {
+          const colCount = Math.max(...table.rows.map(r => r.values.length));
+          for (let col = 0; col < colCount; col++) {
+            const colValues = table.rows.map(r => r.values[col]).filter(v => v !== undefined);
+            if (colValues.length >= 2) {
+              const colMean = colValues.reduce((a, b) => a + b, 0) / colValues.length;
+              const diff = Math.abs(colMean - claimedMean);
+              // If claimed mean is close to a column mean, verify
+              if (diff > 0.001 && diff < 0.5 && claimedMean > 0) {
+                // The claimed mean is close but not exact to a calculated column mean
+                if (diff > 0.05) {
+                  const tableRef = table.title ? `Tabel ${table.number} (${table.title})` : `Tabel ${table.number}`;
+                  results.push({
+                    type: diff > 0.2 ? 'error' : 'warning',
+                    title: `Rata-rata tidak sesuai: ${claimedMean} vs ${colMean.toFixed(2)}`,
+                    desc: `Klaim rata-rata "${context}" = ${claimedMean}, tetapi hitungan dari data ${tableRef} kolom ${col + 1} = ${colMean.toFixed(2)} (selisih ${diff.toFixed(3)}).`,
+                    detail: `Data kolom: [${colValues.join(', ')}]\nRata-rata hitungan: ${colMean.toFixed(4)}\nRata-rata klaim: ${claimedMean}`,
+                    fix: `Periksa kembali perhitungan rata-rata. Seharusnya ${colMean.toFixed(2)}.`,
+                    table: tableRef
+                  });
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Find claimed totals: "total X = Y" or "jumlah X = Y"
+  const totalPatterns = [
+    /(?:total|jumlah)\s+(.+?)\s+(?:adalah|=|sebesar|:)\s*(\d+[.,]?\d*)/gi,
+    /(.+?)\s+(?:total|jumlah)(?:nya)?\s+(?:adalah|=|sebesar|:)\s*(\d+[.,]?\d*)/gi
+  ];
+
+  for (const pattern of totalPatterns) {
+    let m;
+    while ((m = pattern.exec(text)) !== null) {
+      const claimedTotal = parseFloat(m[m.length - 1].replace(',', '.'));
+      const context = m[1] ? m[1].trim().substring(0, 50) : '';
+
+      for (const table of tables) {
+        for (const row of table.rows) {
+          if (row.values.length >= 2) {
+            const actualTotal = row.values.reduce((a, b) => a + b, 0);
+            const diff = Math.abs(actualTotal - claimedTotal);
+            if (diff > 0.01 && diff < 2.0 && claimedTotal > 0) {
+              const tableRef = table.title ? `Tabel ${table.number} (${table.title})` : `Tabel ${table.number}`;
+              results.push({
+                type: diff > 0.5 ? 'error' : 'warning',
+                title: `Total tidak sesuai: ${claimedTotal} vs ${actualTotal.toFixed(2)}`,
+                desc: `Klaim total "${context}" = ${claimedTotal}, tetapi jumlah dari ${tableRef} baris "${row.label}" = ${actualTotal.toFixed(2)}.`,
+                detail: `Data baris: [${row.values.join(', ')}]\nJumlah hitungan: ${actualTotal.toFixed(4)}\nJumlah klaim: ${claimedTotal}`,
+                fix: `Periksa kembali perhitungan total.`,
+                table: tableRef
+              });
+            }
+          }
+        }
+      }
+    }
+  }
+
+  // Find claimed standard deviation
+  const sdPatterns = [
+    /(?:simpangan\s+baku|standar\s+deviasi|SD|sb)\s+(?:dari\s+)?(.+?)\s+(?:adalah|=|sebesar|:)\s*(\d+[.,]?\d*)/gi,
+    /(.+?)\s+(?:simpangan\s+baku|standar\s+deviasi)(?:nya)?\s+(?:adalah|=|sebesar|:)\s*(\d+[.,]?\d*)/gi
+  ];
+
+  for (const pattern of sdPatterns) {
+    let m;
+    while ((m = pattern.exec(text)) !== null) {
+      const claimedSD = parseFloat(m[m.length - 1].replace(',', '.'));
+      const context = m[1] ? m[1].trim().substring(0, 50) : '';
+
+      for (const table of tables) {
+        if (table.rows.length >= 2) {
+          const colCount = Math.max(...table.rows.map(r => r.values.length));
+          for (let col = 0; col < colCount; col++) {
+            const colValues = table.rows.map(r => r.values[col]).filter(v => v !== undefined);
+            if (colValues.length >= 2) {
+              const mean = colValues.reduce((a, b) => a + b, 0) / colValues.length;
+              const variance = colValues.reduce((sum, v) => sum + Math.pow(v - mean, 2), 0) / (colValues.length - 1);
+              const actualSD = Math.sqrt(variance);
+              const diff = Math.abs(actualSD - claimedSD);
+              if (diff > 0.005 && diff < 2.0 && claimedSD > 0) {
+                const tableRef = table.title ? `Tabel ${table.number} (${table.title})` : `Tabel ${table.number}`;
+                results.push({
+                  type: diff > 0.1 ? 'error' : 'warning',
+                  title: `Simpangan baku tidak sesuai: ${claimedSD} vs ${actualSD.toFixed(3)}`,
+                  desc: `Klaim simpangan baku "${context}" = ${claimedSD}, tetapi hitungan dari ${tableRef} kolom ${col + 1} = ${actualSD.toFixed(3)} (selisih ${diff.toFixed(4)}).`,
+                  detail: `Data kolom: [${colValues.join(', ')}]\nMean: ${mean.toFixed(4)}\nSD hitungan: ${actualSD.toFixed(4)}\nSD klaim: ${claimedSD}`,
+                  fix: `Periksa kembali perhitungan simpangan baku. Seharusnya ${actualSD.toFixed(2)}.`,
+                  table: tableRef
+                });
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return results;
+}
+
+// 3. Table vs Text Inconsistency
+function detectTableTextInconsistency(text, tables) {
+  const results = [];
+  const pembahasan = extractSec(text, 'PEMBAHASAN', 'KESIMPULAN') || '';
+  const hasil = extractSec(text, 'HASIL', 'PEMBAHASAN') || '';
+  const discussionText = pembahasan + '\n' + hasil;
+
+  if (!discussionText.trim() || tables.length === 0) return results;
+
+  // Find specific numbers mentioned in discussion text that reference data
+  const numberMentions = [];
+  const numPatterns = [
+    /(?:rata[\s-]*rata|mean|rerata)\s+(?:dari\s+)?(.+?)\s+(?:adalah|=|sebesar|:)\s*(\d+[.,]?\d*)/gi,
+    /(.+?)\s+sebesar\s+(\d+[.,]?\d*)\s*(?:cm|mm|gr|g|kg|%|ton|liter|ml)?/gi,
+    /(\d+[.,]?\d*)\s*(?:cm|mm|gr|g|kg|%|ton|liter|ml)/gi,
+    /(?:mencapai|berkisar|diperoleh|menghasilkan)\s+(\d+[.,]?\d*)/gi
+  ];
+
+  for (const pattern of numPatterns) {
+    let m;
+    while ((m = pattern.exec(discussionText)) !== null) {
+      const val = parseFloat(m[m.length - 1].replace(',', '.'));
+      if (!isNaN(val) && val > 0) {
+        numberMentions.push({ value: val, context: m[0].substring(0, 80), index: m.index });
+      }
+    }
+  }
+
+  // For each number mentioned in text, check if it exists in any table
+  for (const mention of numberMentions) {
+    let foundInTable = false;
+    for (const table of tables) {
+      for (const row of table.rows) {
+        if (row.values.some(v => Math.abs(v - mention.value) < 0.01)) {
+          foundInTable = true;
+          break;
+        }
+      }
+      if (foundInTable) break;
+    }
+
+    // If the number is significant (>1) and not found in any table, flag it
+    if (!foundInTable && mention.value > 1 && mention.value < 10000) {
+      // Check if it's close to any table value
+      let closestDiff = Infinity;
+      let closestVal = null;
+      for (const table of tables) {
+        for (const row of table.rows) {
+          for (const v of row.values) {
+            const diff = Math.abs(v - mention.value);
+            if (diff < closestDiff && diff > 0.01) {
+              closestDiff = diff;
+              closestVal = v;
+            }
+          }
+        }
+      }
+
+      if (closestDiff < mention.value * 0.3 && closestDiff > 0.05) {
+        results.push({
+          type: 'warning',
+          title: `Angka di teks tidak cocok tabel: ${mention.value}`,
+          desc: `Teks Pembahasan menyebut angka ${mention.value} ("${mention.context}") tetapi angka terdekat di tabel adalah ${closestVal} (selisih ${closestDiff.toFixed(2)}).`,
+          detail: `Konteks teks: "${mention.context}"\nAngka di tabel terdekat: ${closestVal}\nSelisih: ${closestDiff.toFixed(3)}`,
+          fix: `Pastikan angka yang disebutkan di Pembahasan sesuai dengan data di tabel. Gunakan angka dari tabel, bukan mengarang.`,
+          table: '-'
+        });
+      }
+    }
+  }
+
+  // Check percentages mentioned in text
+  const pctMentions = [];
+  const pctPattern = /(\d+[.,]?\d*)\s*%/g;
+  let pm;
+  while ((pm = pctPattern.exec(discussionText)) !== null) {
+    const val = parseFloat(pm[1].replace(',', '.'));
+    if (!isNaN(val)) pctMentions.push(val);
+  }
+
+  // Check if percentages in a paragraph add up to ~100%
+  const paras = discussionText.split(/\n\n+/).filter(p => p.trim().length > 50);
+  for (const para of paras) {
+    const pcts = [];
+    const ppr = /(\d+[.,]?\d*)\s*%/g;
+    let pp;
+    while ((pp = ppr.exec(para)) !== null) {
+      const val = parseFloat(pp[1].replace(',', '.'));
+      if (!isNaN(val) && val > 0 && val <= 100) pcts.push(val);
+    }
+    if (pcts.length >= 3) {
+      const total = pcts.reduce((a, b) => a + b, 0);
+      if (Math.abs(total - 100) > 1 && Math.abs(total - 100) < 30) {
+        results.push({
+          type: 'warning',
+          title: `Persentase tidak menjumlah 100%`,
+          desc: `Ditemukan ${pcts.length} persentase dalam satu paragraf yang berjumlah ${total.toFixed(1)}%, bukan 100%.`,
+          detail: `Persentase: [${pcts.join('%, ')}%]\nTotal: ${total.toFixed(1)}%`,
+          fix: `Periksa kembali perhitungan persentase. Total harus 100%.`,
+          table: '-'
+        });
+      }
+    }
+  }
+
+  return results;
+}
+
+// 4. Data Anomaly Detection
+function detectDataAnomalies(table) {
+  const results = [];
+  const tableRef = table.title ? `Tabel ${table.number} (${table.title})` : `Tabel ${table.number}`;
+
+  if (table.rows.length < 2) return results;
+
+  const colCount = Math.max(...table.rows.map(r => r.values.length));
+
+  for (let col = 0; col < colCount; col++) {
+    const colData = [];
+    for (let ri = 0; ri < table.rows.length; ri++) {
+      if (table.rows[ri].values[col] !== undefined) {
+        colData.push({ row: table.rows[ri], value: table.rows[ri].values[col], rowIndex: ri });
+      }
+    }
+    if (colData.length < 3) continue;
+
+    const values = colData.map(d => d.value);
+    const mean = values.reduce((a, b) => a + b, 0) / values.length;
+    const sortedVals = [...values].sort((a, b) => a - b);
+    const median = sortedVals[Math.floor(sortedVals.length / 2)];
+
+    // Outlier detection: values 2x+ different from median
+    for (const d of colData) {
+      if (median > 0 && (d.value > median * 3 || d.value < median / 3) && d.value !== median) {
+        results.push({
+          type: 'warning',
+          title: `Outlier: ${d.row.label} = ${d.value}`,
+          desc: `Nilai ${d.value} pada baris "${d.row.label}" kolom ${col + 1} di ${tableRef} sangat berbeda dari nilai lainnya (median: ${median}).`,
+          detail: `Nilai kolom: [${values.join(', ')}]\nMedian: ${median}\nNilai outlier: ${d.value}`,
+          fix: `Verifikasi apakah nilai ${d.value} benar atau ada kesalahan input.`,
+          table: tableRef
+        });
+      }
+
+      // Impossible values
+      if (d.value < 0 && table.title && /diameter|tinggi|berat|panjang|lebar/i.test(table.title)) {
+        results.push({
+          type: 'error',
+          title: `Nilai negatif tidak mungkin: ${d.row.label}`,
+          desc: `Nilai ${d.value} pada baris "${d.row.label}" di ${tableRef} adalah negatif, yang tidak mungkin untuk data "${table.title}".`,
+          detail: `Baris: ${d.row.raw}`,
+          fix: `Periksa kembali data. Nilai tidak boleh negatif.`,
+          table: tableRef
+        });
+      }
+
+      // Percentage > 100%
+      if (d.value > 100 && table.title && /persentase|%|keberhasilan/i.test(table.title)) {
+        results.push({
+          type: 'error',
+          title: `Persentase > 100%: ${d.row.label} = ${d.value}%`,
+          desc: `Nilai ${d.value}% pada baris "${d.row.label}" di ${tableRef} melebihi 100%.`,
+          detail: `Baris: ${d.row.raw}`,
+          fix: `Periksa kembali perhitungan persentase.`,
+          table: tableRef
+        });
+      }
+    }
+
+    // Check for suspiciously round numbers
+    const allRound = values.every(v => v === Math.round(v) || (v * 10) % 5 === 0);
+    if (allRound && values.length >= 4 && values.some(v => v !== Math.round(v))) {
+      results.push({
+        type: 'info',
+        title: `Angka terlalu "rata" di kolom ${col + 1}`,
+        desc: `Semua nilai di kolom ${col + 1} ${tableRef} berakhir dengan .0 atau .5. Ini bisa menandakan data bukan hasil pengukuran sebenarnya.`,
+        detail: `Nilai: [${values.join(', ')}]`,
+        fix: `Pastikan data berasal dari pengukuran langsung, bukan pembulatan berlebihan.`,
+        table: tableRef
+      });
+    }
+  }
+
+  // Check for treatment results higher than control
+  const controlLabels = ['kontrol', 'control', 'K0', 'tanpa perlakuan', 'tanpa perlakauan'];
+  const controlRows = table.rows.filter(r =>
+    controlLabels.some(cl => r.label.toLowerCase().includes(cl.toLowerCase()))
+  );
+  const treatmentRows = table.rows.filter(r =>
+    !controlLabels.some(cl => r.label.toLowerCase().includes(cl.toLowerCase()))
+  );
+
+  if (controlRows.length > 0 && treatmentRows.length > 0) {
+    for (let col = 0; col < colCount; col++) {
+      const controlVal = controlRows[0].values[col];
+      if (controlVal === undefined) continue;
+
+      for (const tRow of treatmentRows) {
+        const tVal = tRow.values[col];
+        if (tVal === undefined) continue;
+
+        // If treatment is 2x+ higher than positive control, might be suspicious
+        // (depends on context - some treatments can exceed control)
+      }
+    }
+  }
+
+  return results;
+}
+
+// Display Statistik Results
+function displayStatistikResults(r) {
+  // Score card
+  const scoreColor = r.score >= 75 ? 'var(--success)' : r.score >= 50 ? 'var(--warning)' : 'var(--danger)';
+  const circumference = 2 * Math.PI * 40;
+  const offset = circumference - (r.score / 100) * circumference;
+  document.getElementById('statistikScoreCard').innerHTML = `
+    <div class="statistik-header"><h4>📊 Analisis Data Statistik</h4></div>
+    <div class="statistik-score-ring">
+      <svg width="100" height="100" viewBox="0 0 100 100">
+        <circle class="ring-bg" cx="50" cy="50" r="40"/>
+        <circle class="ring-fill" cx="50" cy="50" r="40" style="stroke:${scoreColor};stroke-dasharray:${circumference};stroke-dashoffset:${offset}"/>
+      </svg>
+      <div class="ring-text" style="color:${scoreColor}">${r.score}</div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--text-secondary);margin-bottom:16px">
+      ${r.score >= 80 ? '✨ Kualitas Data Baik' : r.score >= 60 ? '⚠️ Ada Masalah Data' : '❌ Banyak Masalah Data'} — Skor Kualitas Data
+    </div>`;
+
+  // Summary stats
+  document.getElementById('statistikSummaryCard').innerHTML = `
+    <div class="statistik-header"><h4>📈 Ringkasan</h4></div>
+    <div class="statistik-summary">
+      <div class="statistik-stat"><div class="num" style="color:var(--primary)">${r.summary.tablesFound}</div><div class="lbl">Tabel Ditemukan</div></div>
+      <div class="statistik-stat"><div class="num" style="color:var(--primary)">${r.summary.valuesAnalyzed}</div><div class="lbl">Nilai Dianalisis</div></div>
+      <div class="statistik-stat"><div class="num" style="color:var(--danger)">${r.summary.copyPasteIssues}</div><div class="lbl">Copy-Paste</div></div>
+      <div class="statistik-stat"><div class="num" style="color:var(--warning)">${r.summary.verificationIssues}</div><div class="lbl">Verifikasi</div></div>
+      <div class="statistik-stat"><div class="num" style="color:var(--warning)">${r.summary.inconsistencyIssues}</div><div class="lbl">Inkonsistensi</div></div>
+      <div class="statistik-stat"><div class="num" style="color:var(--danger)">${r.summary.anomalyIssues}</div><div class="lbl">Anomali</div></div>
+    </div>`;
+
+  // Detail tabs
+  const categories = [
+    { key: 'copyPaste', label: '📋 Copy-Paste', icon: '📋' },
+    { key: 'verification', label: '🧮 Verifikasi', icon: '🧮' },
+    { key: 'inconsistency', label: '🔄 Inkonsistensi', icon: '🔄' },
+    { key: 'anomalies', label: '⚠️ Anomali', icon: '⚠️' }
+  ];
+
+  const tabsHtml = categories.map((c, i) =>
+    `<button class="statistik-tab ${i === 0 ? 'active' : ''}" onclick="switchStatistikTab('${c.key}', this)">${c.label} (${r.findings[c.key].length})</button>`
+  ).join('');
+
+  document.getElementById('statistikDetailCard').innerHTML = `
+    <div class="statistik-header"><h4>🔍 Detail Temuan</h4></div>
+    <div class="statistik-tabs">${tabsHtml}</div>
+    <div id="statistikContent"></div>`;
+
+  showStatistikCat('copyPaste');
+
+  // Store for DOC export
+  const allFindings = [];
+  const catLabels = { copyPaste: 'Copy-Paste', verification: 'Verifikasi', inconsistency: 'Inkonsistensi', anomalies: 'Anomali' };
+  for (const [key, items] of Object.entries(r.findings)) {
+    for (const item of items) {
+      allFindings.push({ ...item, category: catLabels[key] || key });
+    }
+  }
+  window._statistikExportData = { summary: r.summary, score: r.score, allFindings };
+}
+
+function switchStatistikTab(cat, btn) {
+  document.querySelectorAll('.statistik-tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  showStatistikCat(cat);
+}
+
+function showStatistikCat(cat) {
+  const items = statistikResults.findings[cat] || [];
+  const el = document.getElementById('statistikContent');
+  if (items.length === 0) {
+    el.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);">Tidak ada temuan ✅</div>';
+    return;
+  }
+  el.innerHTML = items.map(i => `
+    <div class="statistik-item ${i.type}">
+      <div class="s-label">${i.type === 'error' ? '❌ Error' : i.type === 'warning' ? '⚠️ Warning' : 'ℹ️ Info'}</div>
+      <div class="s-title">${i.title}</div>
+      <div class="s-desc">${i.desc}</div>
+      ${i.detail ? `<div class="s-detail">${i.detail}</div>` : ''}
+      ${i.table ? `<div style="font-size:10px;color:var(--text-muted);margin-top:6px;">📊 ${i.table}</div>` : ''}
+      ${i.fix ? `<div class="s-fix">${i.fix}</div>` : ''}
+    </div>`).join('');
 }
 </script>
 </body>
